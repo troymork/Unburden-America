@@ -1,0 +1,33 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "url": "={{ $vars.AGENT_BASE_URL }}/agents/compliance-legal",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({\n  content: $json.content,\n  content_type: $json.content_type || 'social_post',\n  platform: $json.platform || 'general'\n}) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "compliance-legal",
+      "name": "Compliance & Legal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [400, 500],
+      "notes": "Ensures compliance with regulations and platform policies"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "url": "={{ $vars.AGENT_BASE_URL }}/agents/policy-fact-check",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({\n  claim_text: $json.claim_text,\n  context: $json.context,\n  required_confidence: $json.required_confidence || 0.9\n}) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "policy-fact-check",
+      "name": "Policy Fact-Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [200, 500],
+      "notes": "Validates claims against Tier A/B authoritative sources"
+    }
+  ]
+}

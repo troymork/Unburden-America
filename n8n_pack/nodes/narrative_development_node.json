@@ -1,0 +1,33 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "url": "={{ $vars.AGENT_BASE_URL }}/agents/narrative-development",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({\n  bundle_id: $json.bundle_id,\n  script_md: $json.script_md,\n  audience: $json.audience || 'general public',\n  length_seconds: $json.length_seconds || 60\n}) }}",
+        "options": {
+          "timeout": 45000
+        }
+      },
+      "id": "narrative-development",
+      "name": "Narrative Development",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [600, 300],
+      "notes": "Polishes story arc while preserving factual fidelity"
+    }
+  ]
+}

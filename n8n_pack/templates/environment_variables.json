@@ -1,0 +1,31 @@
+{
+  "variables": [
+    {
+      "key": "AGENT_BASE_URL",
+      "value": "https://your-agent-api.unburden-america.com",
+      "description": "Base URL for all agent API endpoints"
+    },
+    {
+      "key": "WEBHOOK_BASE_URL", 
+      "value": "https://your-n8n-instance.com",
+      "description": "Base URL for n8n webhooks"
+    },
+    {
+      "key": "NOTIFICATION_EMAIL",
+      "value": "alerts@unburden-america.com",
+      "description": "Email for system notifications and reports"
+    }
+  ],
+  "credentials": [
+    {
+      "name": "Agent API Bearer Token",
+      "type": "httpBearerAuth",
+      "description": "Bearer token for authenticating with agent APIs"
+    },
+    {
+      "name": "Email SMTP",
+      "type": "smtp",
+      "description": "SMTP credentials for sending notifications and reports"
+    }
+  ]
+}
