@@ -1,0 +1,28 @@
+name: Build agents… push to GHCR
+on:
+  push:
+    paths:
+      - github_wiring/solvency-agents/**
+      - .github/workflows/agents-ci.yml
+    branches: [ main ]
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: \${{ github.actor }}
+          password: \${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./github_wiring/solvency-agents
+          push: true
+          tags: ghcr.io/\${{ github.repository_owner }}/solvency-agent:latest
