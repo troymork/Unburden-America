@@ -1,0 +1,63 @@
+{
+  "name": "07_web_commit",
+  "nodes": [
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "repo",
+              "value": "kyrios441/site"
+            }
+          ]
+        }
+      },
+      "id": 12,
+      "name": "Prep",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        300,
+        1160
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://web-agent/commit",
+        "options": {},
+        "sendBody": true,
+        "jsonParameters": true,
+        "authentication": "none",
+        "method": "POST",
+        "bodyParametersJson": "{}"
+      },
+      "id": 13,
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        400,
+        1240
+      ]
+    }
+  ],
+  "connections": {
+    "Prep": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "meta": {
+    "description": "Push content to GitHub and deploy",
+    "version": "0.1"
+  },
+  "active": false
+}

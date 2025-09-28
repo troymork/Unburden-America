@@ -1,0 +1,62 @@
+{
+  "name": "05_voice_record",
+  "nodes": [
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "voice",
+              "value": "elevenlabs"
+            }
+          ]
+        }
+      },
+      "id": 8,
+      "name": "Prep",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        300,
+        840
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://voice-agent/record",
+        "options": {},
+        "sendBody": true,
+        "jsonParameters": true,
+        "authentication": "none",
+        "method": "POST",
+        "bodyParametersJson": "{}"
+      },
+      "id": 9,
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        400,
+        920
+      ]
+    }
+  ],
+  "connections": {
+    "Prep": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "meta": {
+    "description": "ElevenLabs voice generation",
+    "version": "0.1"
+  }
+}

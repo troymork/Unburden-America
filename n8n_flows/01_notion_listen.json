@@ -1,0 +1,23 @@
+{
+  "name": "01_notion_listen",
+  "nodes": [
+    {
+      "parameters": {
+        "event": "createUpdate"
+      },
+      "id": 1,
+      "name": "Notion Trigger",
+      "type": "n8n-nodes-base.notionTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        280
+      ]
+    }
+  ],
+  "connections": {},
+  "meta": {
+    "description": "Listen to Milestones/Needs updates",
+    "version": "0.1"
+  }
+}

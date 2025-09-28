@@ -1,0 +1,31 @@
+{
+  "type": "explainer",
+  "slug": "two-economies-explainer",
+  "title": "How taxing the monetary economy ends U.S. debt",
+  "hero": {
+    "kicker": "Watch & share",
+    "headline": "The real vs monetary economy\u2026 what most people miss",
+    "video_url": "{{video_url}}"
+  },
+  "sections": [
+    {
+      "kind": "problem",
+      "heading": "The Burden",
+      "bullets": [
+        "Rising debt\u2026 shrinking services",
+        "Working families bear the heaviest taxes",
+        "Financial trades escape proportional taxation"
+      ]
+    },
+    {
+      "kind": "insight",
+      "heading": "A simple shift",
+      "copy": "Tax flows in the monetary economy proportionally\u2026 reduce pressure on wages and purchases."
+    },
+    {
+      "kind": "cta",
+      "label": "Sign the Fuller Treaty for Humanity",
+      "href": "/treaty"
+    }
+  ]
+}

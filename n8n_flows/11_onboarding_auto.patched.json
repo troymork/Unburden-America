@@ -1,0 +1,157 @@
+{
+  "name": "11_onboarding_auto",
+  "nodes": [
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "source",
+              "value": "new_volunteer"
+            },
+            {
+              "name": "role_hint",
+              "value": "steward"
+            }
+          ]
+        }
+      },
+      "id": 1,
+      "name": "Init",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        300,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://solvency-planner-URL/plan",
+        "options": {},
+        "sendBody": true,
+        "jsonParameters": true,
+        "authentication": "none",
+        "method": "POST",
+        "bodyParametersJson": "{\"action\": \"create_onboarding_plan\"}"
+      },
+      "id": 2,
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        600,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://solvency-webhook-notion/create",
+        "options": {},
+        "sendBody": true,
+        "jsonParameters": true,
+        "authentication": "none",
+        "method": "POST",
+        "bodyParametersJson": "{}"
+      },
+      "id": 3,
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        600,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://solvency-webhook-github/create_issue",
+        "options": {},
+        "sendBody": true,
+        "jsonParameters": true,
+        "authentication": "none",
+        "method": "POST",
+        "bodyParametersJson": "{}"
+      },
+      "id": 4,
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        600,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://solvency-webhook-email/send",
+        "options": {},
+        "sendBody": true,
+        "jsonParameters": true,
+        "authentication": "none",
+        "method": "POST",
+        "bodyParametersJson": "{}"
+      },
+      "id": 5,
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        600,
+        600
+      ]
+    }
+  ],
+  "connections": {
+    "Init": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "meta": {
+    "description": "Hands free onboarding… provisions Notion views… creates GitHub issues… posts welcome brief",
+    "version": "0.2"
+  },
+  "active": false
+}

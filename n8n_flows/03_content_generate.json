@@ -1,0 +1,62 @@
+{
+  "name": "03_content_generate",
+  "nodes": [
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "agent",
+              "value": "producer"
+            }
+          ]
+        }
+      },
+      "id": 4,
+      "name": "Prep",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        300,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://agent-producer/bundle",
+        "options": {},
+        "sendBody": true,
+        "jsonParameters": true,
+        "authentication": "none",
+        "method": "POST",
+        "bodyParametersJson": "{}"
+      },
+      "id": 5,
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        400,
+        600
+      ]
+    }
+  ],
+  "connections": {
+    "Prep": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "meta": {
+    "description": "Producer Agent builds bundles",
+    "version": "0.1"
+  }
+}

@@ -1,0 +1,34 @@
+name: Build and Push agent image to GHCR
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'Dockerfile'
+      - 'server.py'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/solvency-agent
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build
+        run: |
+          docker build -t $REGISTRY/$IMAGE_NAME:latest .
+      - name: Push
+        run: |
+          docker push $REGISTRY/$IMAGE_NAME:latest

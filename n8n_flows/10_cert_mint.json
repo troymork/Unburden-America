@@ -1,0 +1,62 @@
+{
+  "name": "10_cert_mint",
+  "nodes": [
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "prefix",
+              "value": "ITEM"
+            }
+          ]
+        }
+      },
+      "id": 18,
+      "name": "Prep",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        300,
+        1640
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://cert-agent/mint",
+        "options": {},
+        "sendBody": true,
+        "jsonParameters": true,
+        "authentication": "none",
+        "method": "POST",
+        "bodyParametersJson": "{}"
+      },
+      "id": 19,
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        400,
+        1720
+      ]
+    }
+  ],
+  "connections": {
+    "Prep": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "meta": {
+    "description": "Generate numbered certificates",
+    "version": "0.1"
+  }
+}

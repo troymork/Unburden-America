@@ -1,0 +1,63 @@
+{
+  "name": "09_analytics_rollup",
+  "nodes": [
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "analytics",
+              "value": "ga4"
+            }
+          ]
+        }
+      },
+      "id": 16,
+      "name": "Prep",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        300,
+        1480
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://analytics-agent/rollup",
+        "options": {},
+        "sendBody": true,
+        "jsonParameters": true,
+        "authentication": "none",
+        "method": "POST",
+        "bodyParametersJson": "{}"
+      },
+      "id": 17,
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        400,
+        1560
+      ]
+    }
+  ],
+  "connections": {
+    "Prep": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "meta": {
+    "description": "Gather metrics and compute OKRs",
+    "version": "0.1"
+  },
+  "active": false
+}

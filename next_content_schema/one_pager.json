@@ -1,0 +1,30 @@
+{
+  "type": "one_pager",
+  "slug": "awareness-one-pager",
+  "title": "Lift the burden\u2026 fund the future",
+  "print": {
+    "size": "letter",
+    "margins": "0.5in"
+  },
+  "blocks": [
+    {
+      "type": "headline",
+      "text": "Lift the Burden\u2026 Fund the Future"
+    },
+    {
+      "type": "stat",
+      "label": "U.S. Debt",
+      "value": "$33T*",
+      "footnote": "*As of latest release"
+    },
+    {
+      "type": "body",
+      "text": "A fair share from the monetary economy can relieve pressure on working families without harming productive enterprise."
+    },
+    {
+      "type": "cta",
+      "label": "Download PDF",
+      "href": "/downloads/one-pager.pdf"
+    }
+  ]
+}

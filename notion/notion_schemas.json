@@ -1,0 +1,229 @@
+{
+  "Project Needs": {
+    "database_name": "Project Needs",
+    "properties": {
+      "Unnamed: 0": {
+        "type": "title"
+      },
+      "Unnamed: 1": {
+        "type": "rich_text"
+      },
+      "Unnamed: 2": {
+        "type": "select",
+        "options": [
+          "False",
+          "Linked in",
+          "Website"
+        ]
+      },
+      "Unnamed: 3": {
+        "type": "number"
+      },
+      "@dropdown": {
+        "type": "rich_text"
+      },
+      "Unnamed: 5": {
+        "type": "number"
+      }
+    },
+    "import_note": "Map the first column to Notion 'Title'. Other types are suggested\u2026 confirm during import."
+  },
+  "Milestones": {
+    "database_name": "Milestones",
+    "properties": {
+      "Unnamed: 0": {
+        "type": "title"
+      },
+      "Timeline for Project": {
+        "type": "rich_text"
+      },
+      "Unnamed: 2": {
+        "type": "select",
+        "options": [
+          "Status",
+          "WAITING",
+          "APPROVED",
+          "NEED INPUT"
+        ]
+      },
+      "Unnamed: 3": {
+        "type": "select",
+        "options": [
+          "Deadline"
+        ]
+      },
+      "Unnamed: 4": {
+        "type": "select",
+        "options": [
+          "Owner"
+        ]
+      },
+      "Unnamed: 5": {
+        "type": "select",
+        "options": [
+          "Notes:",
+          "DRAFT",
+          "DRAFT IN TAB",
+          "LINK"
+        ]
+      },
+      "Unnamed: 6": {
+        "type": "rich_text"
+      },
+      "Unnamed: 7": {
+        "type": "rich_text"
+      },
+      "Unnamed: 8": {
+        "type": "select",
+        "options": [
+          "Status",
+          "DEPENDENCY"
+        ]
+      },
+      "Unnamed: 9": {
+        "type": "select",
+        "options": [
+          "Owner"
+        ]
+      },
+      "Unnamed: 10": {
+        "type": "select",
+        "options": [
+          "Deadline"
+        ]
+      },
+      "Unnamed: 11": {
+        "type": "select",
+        "options": [
+          "Notes:"
+        ]
+      },
+      "Unnamed: 12": {
+        "type": "rich_text"
+      },
+      "Unnamed: 13": {
+        "type": "select",
+        "options": [
+          "Milestone 3: Content & Creative Assets (Weeks 6\u20138)",
+          "Goal: Develop the book\u2019s visual identity and core campaign media.",
+          "Dependencies: Some of these can start earlier (like book cover design), but final integration requires the infrastructure (landing page, donation setup).",
+          "Task",
+          "3.1 Book conver finalized",
+          "Website ",
+          "Landing page",
+          "PAC BRANDING",
+          "Landing page video produced",
+          "Icebreaker content crafted ( conversation starter)"
+        ]
+      },
+      "Unnamed: 14": {
+        "type": "select",
+        "options": [
+          "Priority"
+        ]
+      },
+      "Unnamed: 15": {
+        "type": "select",
+        "options": [
+          "Status"
+        ]
+      },
+      "Unnamed: 16": {
+        "type": "select",
+        "options": [
+          "Owner"
+        ]
+      },
+      "Unnamed: 17": {
+        "type": "select",
+        "options": [
+          "Notes:",
+          "DRAFT"
+        ]
+      },
+      "Unnamed: 18": {
+        "type": "rich_text"
+      },
+      "Unnamed: 19": {
+        "type": "select",
+        "options": [
+          "Milestone 4: Marketing & Outreach (Weeks 8\u201312)",
+          "Goal: Launch public-facing campaign and build credibility.",
+          "Dependencies: Needs creative assets + functioning landing page.",
+          "Task",
+          "Landing page live ( with donation + pre order options)",
+          "Targe 50 orgs list ourreach campaign launched"
+        ]
+      },
+      "Unnamed: 20": {
+        "type": "select",
+        "options": [
+          "Priority"
+        ]
+      },
+      "Unnamed: 21": {
+        "type": "select",
+        "options": [
+          "Status"
+        ]
+      },
+      "Unnamed: 22": {
+        "type": "select",
+        "options": [
+          "Owner"
+        ]
+      },
+      "Unnamed: 23": {
+        "type": "select",
+        "options": [
+          "Notes:"
+        ]
+      },
+      "Unnamed: 24": {
+        "type": "rich_text"
+      },
+      "Unnamed: 25": {
+        "type": "select",
+        "options": [
+          "Milestone 5: Launch Campaign (Week 12+)",
+          "Goal: Official rollout of the book series and fundraising pipeline.",
+          "Dependencies: Everything before this feeds into the public push.",
+          "Task",
+          "Anounce Lunch date with videos + landing page",
+          "begin selling books + merch through shipify / printful",
+          "Host engagement events ( better mode community)"
+        ]
+      },
+      "Unnamed: 26": {
+        "type": "select",
+        "options": [
+          "Priority"
+        ]
+      },
+      "Unnamed: 27": {
+        "type": "select",
+        "options": [
+          "Status"
+        ]
+      },
+      "Unnamed: 28": {
+        "type": "select",
+        "options": [
+          "Owner"
+        ]
+      },
+      "Unnamed: 29": {
+        "type": "select",
+        "options": [
+          "Notes:"
+        ]
+      }
+    },
+    "import_note": "Map the first column to Notion 'Title'. Other types are suggested\u2026 confirm during import."
+  },
+  "Project Overview": {
+    "database_name": "Project Overview",
+    "properties": {},
+    "import_note": "Map the first column to Notion 'Title'. Other types are suggested\u2026 confirm during import."
+  }
+}

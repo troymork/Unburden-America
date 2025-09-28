@@ -1,0 +1,92 @@
+{
+  "name": "13_compliance_gate",
+  "nodes": [
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "asset_id",
+              "value": "{{asset}}"
+            }
+          ]
+        }
+      },
+      "id": 12,
+      "name": "Init",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        300,
+        1160
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://solvency-compliance-URL/check",
+        "options": {},
+        "sendBody": true,
+        "jsonParameters": true,
+        "authentication": "none",
+        "method": "POST",
+        "bodyParametersJson": "{\"checks\": [\"disclosure\", \"copyright\", \"risk_language\"]}"
+      },
+      "id": 13,
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        600,
+        1240
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://solvency-webhook-notion/update_status",
+        "options": {},
+        "sendBody": true,
+        "jsonParameters": true,
+        "authentication": "none",
+        "method": "POST",
+        "bodyParametersJson": "{}"
+      },
+      "id": 14,
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        600,
+        1320
+      ]
+    }
+  ],
+  "connections": {
+    "Init": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "meta": {
+    "description": "Auto gate for assets\u2026 must pass disclosure\u2026 disclaimers\u2026 and risk checks before publish",
+    "version": "0.2"
+  }
+}

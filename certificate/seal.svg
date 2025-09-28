@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#c79a00"/>
+    </radialGradient>
+  </defs>
+  <circle cx="110" cy="110" r="100" fill="url(#g)" stroke="#b8860b" stroke-width="6"/>
+  <circle cx="110" cy="110" r="80" fill="none" stroke="#8b7500" stroke-width="2" stroke-dasharray="6 6"/>
+  <text x="110" y="100" text-anchor="middle" font-family="Georgia" font-size="18" fill="#4a3800">Agreement</text>
+  <text x="110" y="122" text-anchor="middle" font-family="Georgia" font-size="18" fill="#4a3800">Economy</text>
+  <text x="110" y="150" text-anchor="middle" font-family="Georgia" font-size="12" fill="#4a3800">Seal of Kindness</text>
+</svg>

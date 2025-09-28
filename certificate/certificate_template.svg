@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2550" height="3300" viewBox="0 0 2550 3300">
+  <rect x="0" y="0" width="2550" height="3300" fill="#fbfaf5"/>
+  <rect x="80" y="80" width="2390" height="3140" fill="none" stroke="#d4c39f" stroke-width="12"/>
+  <text x="1275" y="420" text-anchor="middle" font-family="Georgia" font-size="72" fill="#222">Certificate of Agreement</text>
+  <text x="1275" y="560" text-anchor="middle" font-family="Georgia" font-size="36" fill="#444">This certifies that</text>
+  <text id="name" x="1275" y="660" text-anchor="middle" font-family="Georgia" font-size="56" fill="#000">{{NAME}}</text>
+  <text x="1275" y="760" text-anchor="middle" font-family="Georgia" font-size="28" fill="#444">has added their voice to the Fuller Treaty for Humanity</text>
+  <image href="seal.svg" x="1115" y="950" width="320" height="320"/>
+  <text x="1275" y="1400" text-anchor="middle" font-family="Georgia" font-size="28" fill="#333">Issued</text>
+  <text id="date" x="1275" y="1450" text-anchor="middle" font-family="Georgia" font-size="28" fill="#222">{{DATE}}</text>
+  <text x="1275" y="1550" text-anchor="middle" font-family="Georgia" font-size="24" fill="#333">Certificate ID</text>
+  <text id="id" x="1275" y="1600" text-anchor="middle" font-family="Georgia" font-size="32" fill="#000">{{CERT_ID}}</text>
+  <text x="1275" y="2500" text-anchor="middle" font-family="Georgia" font-size="20" fill="#666">Kyrios… Ordained by Source Energy… Empowered by Archangel Metatron</text>
+</svg>

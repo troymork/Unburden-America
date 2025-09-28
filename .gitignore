@@ -1,0 +1,17 @@
+# env and secrets
+.env
+**/.env
+*.env
+.env.*
+# n8n data and exports
+n8n_data/
+*.backup.json
+# macOS noise
+.DS_Store
+# Python
+__pycache__/
+*.pyc
+# Node
+node_modules/
+# Docker artifacts
+*.local.yml

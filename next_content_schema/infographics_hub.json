@@ -1,0 +1,36 @@
+{
+  "type": "infographics_hub",
+  "slug": "economy-vs-debt",
+  "title": "The $700T monetary economy vs $33T debt",
+  "figures": [
+    {
+      "id": "money-flows",
+      "title": "Money flows",
+      "chart": "sankey",
+      "data_url": "/data/flows.json"
+    },
+    {
+      "id": "tax-weight",
+      "title": "Who carries the load?",
+      "chart": "stacked",
+      "data": [
+        [
+          "Segment",
+          "% tax load"
+        ],
+        [
+          "Wages",
+          "..."
+        ],
+        [
+          "Sales",
+          "..."
+        ],
+        [
+          "Financial trades",
+          "..."
+        ]
+      ]
+    }
+  ]
+}

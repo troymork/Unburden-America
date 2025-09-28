@@ -1,0 +1,21 @@
+{
+  "type": "social_kit",
+  "slug": "launch-kit",
+  "title": "Launch Social Kit",
+  "posts": [
+    {
+      "platform": "tiktok",
+      "copy": "Two economies\u2026 one fix. Tax the monetary flows proportionally\u2026 lift the burden on families. #IsThereEnough #Solvency",
+      "assets": [
+        "/assets/clip1.mp4"
+      ]
+    },
+    {
+      "platform": "x",
+      "copy": "The real economy is overtaxed\u2026 the monetary economy undertaxed. Balance it and end the debt spiral.",
+      "assets": [
+        "/assets/graphic1.png"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "identity": {
+    "name": "Kyrios Sacred Geometry",
+    "description": "Color\u2026 type\u2026 and geometry tokens aligned with Metatron\u2019s Cube\u2026 Sephirot resonances\u2026 Fibonacci flow\u2026 and Torus breath."
+  },
+  "color": {
+    "primary": {
+      "name": "Metatron Gold",
+      "hex": "#F5C84B"
+    },
+    "primaryDeep": {
+      "name": "Solar Gold Deep",
+      "hex": "#C79A00"
+    },
+    "secondary": {
+      "name": "Sapphire",
+      "hex": "#1C3C8E"
+    },
+    "accent": {
+      "name": "Magenta Rose",
+      "hex": "#C92762"
+    },
+    "aqua": {
+      "name": "Aqua Source",
+      "hex": "#2CC6C9"
+    },
+    "emerald": {
+      "name": "Emerald Heart",
+      "hex": "#2EA36A"
+    },
+    "amethyst": {
+      "name": "Amethyst Crown",
+      "hex": "#7B61FF"
+    },
+    "charcoal": {
+      "name": "Cosmic Charcoal",
+      "hex": "#0E0F14"
+    },
+    "ink": {
+      "name": "Void Ink",
+      "hex": "#151924"
+    },
+    "cloud": {
+      "name": "Cloud",
+      "hex": "#F6F7FA"
+    }
+  },
+  "type": {
+    "display": {
+      "family": "Cinzel, serif",
+      "weight": 600,
+      "tracking": 0.01
+    },
+    "body": {
+      "family": "Inter, ui-sans-serif",
+      "weight": 400,
+      "tracking": 0.0
+    },
+    "mono": {
+      "family": "JetBrains Mono, ui-monospace",
+      "weight": 400,
+      "tracking": 0.0
+    },
+    "scale": {
+      "ratio": 1.25,
+      "baseRem": 1.0
+    }
+  },
+  "space": {
+    "xs": 4,
+    "sm": 8,
+    "md": 16,
+    "lg": 24,
+    "xl": 40,
+    "xxl": 64
+  },
+  "shapes": {
+    "radius": {
+      "sm": 8,
+      "md": 16,
+      "lg": 24,
+      "xl": 32
+    },
+    "shadow": {
+      "soft": "0 10px 30px rgba(0,0,0,0.15)",
+      "glow": "0 0 0 3px rgba(245,200,75,0.35)"
+    }
+  },
+  "geometry": {
+    "motifs": [
+      "metatrons_cube.svg",
+      "flower_of_life.svg",
+      "fibonacci_spiral.svg",
+      "torus_wire.svg"
+    ],
+    "stroke": "#F5C84B",
+    "strokeOpacity": 0.8,
+    "strokeWidth": 1.6
+  },
+  "rules": {
+    "contrast": "Use ink on cloud for body\u2026 gold on ink for headers\u2026 maintain 4.5:1 minimum",
+    "motion": "Ease in out quad\u2026 durations 220ms\u2026 440ms\u2026 880ms\u2026 reflect Fibonacci cadence."
+  }
+}
