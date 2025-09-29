@@ -1,0 +1,37 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "url": "={{ $vars.AGENT_BASE_URL }}/agents/content-production",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({\n  plan_id: $json.plan_id,\n  task_bundle: $json.task_bundle || [{type: 'Explainer', topic: 'Solvency basics', constraints: ['Tier A only']}],\n  brand_tone: $json.brand_tone || 'clear, respectful'\n}) }}",
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "enabled": true,
+            "maxRetries": 3
+          }
+        }
+      },
+      "id": "content-production",
+      "name": "Content Production",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [400, 300],
+      "notes": "Creates content bundles ready for narrative polish"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "url": "={{ $vars.AGENT_BASE_URL }}/agents/campaign-strategy-planner",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Agent-Version",
+              "value": "1.0.0"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({\n  goal: $json.goal || 'Grow petition signatures by 20% in 14 days',\n  constraints: $json.constraints || ['No targeted persuasion', 'Stick to Tier A/B sources'],\n  audiences: $json.audiences || ['General public'],\n  assets: $json.assets || [],\n  timeframe_days: $json.timeframe_days || 14,\n  brand_tone: $json.brand_tone || 'clear, respectful',\n  prompt_version: '1.0.0'\n}) }}",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "enabled": true,
+            "maxRetries": 3,
+            "retryInterval": 5000
+          }
+        }
+      },
+      "id": "campaign-strategy-planner",
+      "name": "Campaign Strategy Planner",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [200, 300],
+      "notesInFlow": true,
+      "notes": "Converts objectives into executable campaign plans with KPIs and daily runbooks"
+    }
+  ]
+}

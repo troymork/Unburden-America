@@ -1,0 +1,105 @@
+{
+  "name": "Analytics & Reporting Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "daily-schedule",
+      "name": "📅 Daily 9am Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "url": "={{ $vars.AGENT_BASE_URL }}/agents/impact-analytics",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({\n  report_type: 'daily_rollup',\n  date_range: {\n    start: new Date(Date.now() - 24*60*60*1000).toISOString().split('T')[0],\n    end: new Date().toISOString().split('T')[0]\n  },\n  metrics: ['signups', 'donations_usd', 'social_engagement']\n}) }}"
+      },
+      "id": "generate-analytics",
+      "name": "📊 Generate Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "url": "={{ $vars.AGENT_BASE_URL }}/agents/campaign-strategy-planner",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({\n  action: 'update_strategy',\n  analytics_input: $('generate-analytics').item.json,\n  adjust_tactics: true\n}) }}"
+      },
+      "id": "update-strategy",
+      "name": "🎯 Update Strategy",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "subject": "📊 Daily Unburden America Analytics Report",
+        "message": "Daily Report Generated:\\n\\n{{ JSON.stringify($('generate-analytics').item.json, null, 2) }}\\n\\nStrategy Updates:\\n{{ JSON.stringify($('update-strategy').item.json, null, 2) }}",
+        "options": {}
+      },
+      "id": "email-report",
+      "name": "📧 Email Report",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [700, 300]
+    }
+  ],
+  "connections": {
+    "📅 Daily 9am Schedule": {
+      "main": [
+        [
+          {
+            "node": "📊 Generate Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Generate Analytics": {
+      "main": [
+        [
+          {
+            "node": "🎯 Update Strategy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎯 Update Strategy": {
+      "main": [
+        [
+          {
+            "node": "📧 Email Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1.0.0",
+  "id": "analytics-workflow"
+}
