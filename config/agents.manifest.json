@@ -1,26 +1,13 @@
 {
-  "prompt_version": "1.0.0",
-  "shared_policies": "agents/00_shared_policies.md",
-  "agents": [
-    {"key":"planner","name":"Campaign Strategy Planner","file":"agents/01_campaign_strategy_planner.md"},
-    {"key":"producer","name":"Content Production","file":"agents/02_content_production.md"},
-    {"key":"narrative","name":"Narrative Development","file":"agents/03_narrative_development.md"},
-    {"key":"design","name":"Visual Design","file":"agents/04_visual_design.md"},
-    {"key":"social","name":"Social Media Deployment","file":"agents/05_social_media_deployment.md"},
-    {"key":"analytics","name":"Impact Analytics","file":"agents/06_impact_analytics.md"},
-    {"key":"policy_check","name":"Policy Fact-Check","file":"agents/07_policy_fact_check.md"},
-    {"key":"compliance","name":"Compliance & Legal","file":"agents/08_compliance_legal.md"},
-    {"key":"petition","name":"Petition Funnel Optimizer","file":"agents/09_petition_funnel.md"},
-    {"key":"cert","name":"Certification & Identity","file":"agents/10_certification_identity.md"},
-    {"key":"fundraising","name":"Fundraising Optimization","file":"agents/11_fundraising_optimization.md"},
-    {"key":"automation","name":"Workflow Automation","file":"agents/12_workflow_automation.md"},
-    {"key":"reliability","name":"Technical Reliability & SRE","file":"agents/13_technical_reliability.md"},
-    {"key":"orchestrator","name":"Campaign Orchestration","file":"agents/14_campaign_orchestration.md"},
-    {"key":"meeting","name":"Meeting Intelligence","file":"agents/15_meeting_intelligence.md"},
-    {"key":"compliance_gate","name":"Compliance Gatekeeper","file":"agents/16_compliance_gatekeeper.md"},
-    {"key":"policy_analysis","name":"Policy Analysis","file":"agents/17_policy_analysis.md"},
-    {"key":"audit","name":"Data Governance & Audit","file":"agents/18_data_governance_auditor.md"},
-    {"key":"social_safety","name":"Social Safety Reviewer","file":"agents/19_social_safety_reviewer.md"},
-    {"key":"petition_legal","name":"Petition Legal Reviewer","file":"agents/20_petition_legal_reviewer.md"}
+  "orchestrator": "agents/ORCHESTRATION_AGENT.md",
+  "specialized": [
+    "agents/Monetary_Economy_Analysis.md",
+    "agents/Tax_Reform_Advocacy.md",
+    "agents/Debt_Elimination_Strategy.md",
+    "agents/Economic_Transparency.md",
+    "agents/Real_vs_Monetary_Economy.md",
+    "agents/Voter_Education.md",
+    "agents/Coalition_Building.md",
+    "agents/Media_Engagement.md"
   ]
 }

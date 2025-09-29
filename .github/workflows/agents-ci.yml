@@ -1,28 +1,41 @@
-name: Build agents… push to GHCR
+name: Build and Verify (Dev)
 on:
   push:
-    paths:
-      - github_wiring/solvency-agents/**
-      - .github/workflows/agents-ci.yml
-    branches: [ main ]
-permissions:
-  contents: read
-  packages: write
-  id-token: write
+    branches: [ "main" ]
+  pull_request:
+permissions: {}
 jobs:
-  build:
+  lint-validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: \${{ github.actor }}
-          password: \${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: ./github_wiring/solvency-agents
-          push: true
-          tags: ghcr.io/\${{ github.repository_owner }}/solvency-agent:latest
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install deps
+        run: pip install pyyaml
+      - name: Validate JSON/YAML
+        run: python - <<'PY'
+import json,glob,sys,yaml
+for p in glob.glob("**/*.json", recursive=True):
+  try: json.load(open(p))
+  except Exception as e: print("JSON error:",p,e); sys.exit(1)
+for p in glob.glob("**/*.y*ml", recursive=True):
+  try: yaml.safe_load(open(p))
+  except Exception as e: print("YAML error:",p,e); sys.exit(1)
+print("OK")
+PY
+  dry-run:
+    runs-on: ubuntu-latest
+    needs: lint-validate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Start MCP shim
+        run: nohup python mcp/server/mcp_server.py >/dev/null 2>&1 &
+      - name: Smoke test orchestrator
+        run: |
+          sleep 1
+          curl -s -X POST http://127.0.0.1:7801/rpc \
+            -H 'content-type: application/json' \
+            -d '{"method":"route_intent","params":{"intent":"plan"},"id":"ci"}' | jq .

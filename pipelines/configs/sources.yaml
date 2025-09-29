@@ -1,0 +1,14 @@
+fred:
+  base_url: https://api.stlouisfed.org
+  endpoints: [ 'series/observations' ]
+  env: FRED_API_KEY
+treasury:
+  base_url: https://api.fiscaldata.treasury.gov/services/api/fiscal_service
+  datasets: [ 'debt_to_penny', 'mspd' ]
+sec:
+  base_url: https://data.sec.gov
+  user_agent_env: SEC_UA
+cbo:
+  base_url: https://www.cbo.gov/system
+census:
+  base_url: https://api.census.gov/data

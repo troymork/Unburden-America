@@ -1,0 +1,42 @@
+services:
+  planner:
+    image: local/solvency-agent:planner
+    build: ../solvency-agents
+    pull_policy: never
+    environment: [ROLE=planner]
+    ports: ["8101:8080"]
+
+  producer:
+    image: local/solvency-agent:producer
+    build: ../solvency-agents
+    pull_policy: never
+    environment: [ROLE=producer]
+    ports: ["8102:8080"]
+
+  design:
+    image: local/solvency-agent:design
+    build: ../solvency-agents
+    pull_policy: never
+    environment: [ROLE=design]
+    ports: ["8103:8080"]
+
+  social:
+    image: local/solvency-agent:social
+    build: ../solvency-agents
+    pull_policy: never
+    environment: [ROLE=social]
+    ports: ["8104:8080"]
+
+  analytics:
+    image: local/solvency-agent:analytics
+    build: ../solvency-agents
+    pull_policy: never
+    environment: [ROLE=analytics]
+    ports: ["8105:8080"]
+
+  cert:
+    image: local/solvency-agent:cert
+    build: ../solvency-agents
+    pull_policy: never
+    environment: [ROLE=cert]
+    ports: ["8106:8080"]

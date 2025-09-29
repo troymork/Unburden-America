@@ -1,0 +1,9 @@
+{
+  "pillars": {
+    "policy_knowledge": {"type":"docset","retention":"long"},
+    "campaign_memory": {"type":"episodes","retention":"medium"},
+    "compliance_memory": {"type":"rules","retention":"long"},
+    "stakeholder_memory": {"type":"crm","retention":"medium"},
+    "performance_memory": {"type":"metrics","retention":"rolling"}
+  }
+}

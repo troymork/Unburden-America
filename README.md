@@ -16,3 +16,16 @@ cp .env.example .env
 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
 open http://localhost:5678
 ```
+
+## Dev Quickstart
+
+1) Start MCP shim
+```bash
+scripts/bootstrap_local.sh
+```
+2) Verify build
+```bash
+scripts/verify_build.sh
+```
+3) Import n8n pack (optional) → `n8n_pack/`
+

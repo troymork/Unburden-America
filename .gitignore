@@ -19,3 +19,5 @@ build/
 docker-data/
 README.md.bak
 github_wiring/compose/.env.example
+data/
+.venv/

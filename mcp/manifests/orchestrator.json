@@ -1,0 +1,12 @@
+{
+  "name": "orchestrator",
+  "version": "1.0.0",
+  "description": "MCP manifest for campaign orchestrator",
+  "endpoints": [{ "name": "rpc", "url": "http://localhost:7801/rpc" }],
+  "tools": [
+    { "name": "route_intent", "input": {"type":"object"}, "output": {"type":"object"} },
+    { "name": "get_memory", "input": {"type":"object"}, "output": {"type":"object"} },
+    { "name": "write_memory", "input": {"type":"object"}, "output": {"type":"object"} }
+  ],
+  "permissions": { "scopes": ["read:memory", "write:memory", "invoke:agents"] }
+}
