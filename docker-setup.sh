@@ -122,3 +122,4 @@ echo "   Stop all: docker-compose down"
 echo "   View logs: docker-compose logs -f [service]"
 echo "   Restart service: docker-compose restart [service]"
 echo "   Update services: docker-compose pull && docker-compose up -d"
+
