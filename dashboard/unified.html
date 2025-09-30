@@ -6,6 +6,8 @@
     <title>IsThereEnoughMoney AI Workforce - Unified Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --primary-color: #2563eb;
@@ -348,6 +350,20 @@
                     </div>
                 </div>
 
+                <!-- Final Content Section -->
+                <div id="finalContentSection" class="mb-8 hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                            <i class="fas fa-star text-yellow-500 mr-2"></i>
+                            Final Generated Content
+                        </h3>
+                        <span class="text-sm text-gray-500">Ready for download and use</span>
+                    </div>
+                    <div id="finalContentList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Final content cards will be populated here -->
+                    </div>
+                </div>
+
                 <!-- Workflows Section -->
                 <div class="mb-8">
                     <div class="flex items-center justify-between mb-6">
@@ -545,8 +561,12 @@
                         <p>No workflows yet. Create your first AI-generated content above!</p>
                     </div>
                 `;
+                document.getElementById('finalContentSection').classList.add('hidden');
                 return;
             }
+            
+            // Render final content section
+            renderFinalContent();
             
             workflowsList.innerHTML = workflows.map(workflow => `
                 <div class="workflow-card fade-in" data-workflow-id="${workflow.workflow_id}">
@@ -593,6 +613,103 @@
                     viewWorkflow(workflowId);
                 });
             });
+        }
+        
+        function renderFinalContent() {
+            const completedWorkflows = workflows.filter(w => w.status === 'completed');
+            const finalContentSection = document.getElementById('finalContentSection');
+            const finalContentList = document.getElementById('finalContentList');
+            
+            if (completedWorkflows.length === 0) {
+                finalContentSection.classList.add('hidden');
+                return;
+            }
+            
+            finalContentSection.classList.remove('hidden');
+            
+            // Create content preview cards for completed workflows
+            finalContentList.innerHTML = completedWorkflows.map(workflow => `
+                <div class="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer" 
+                     onclick="viewWorkflow('${workflow.workflow_id}')">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 mb-1">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                ${workflow.name}
+                            </h4>
+                            <p class="text-sm text-gray-600">Completed ${getRelativeTime(workflow.created_at)}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="event.stopPropagation(); quickDownloadPDF('${workflow.workflow_id}')" 
+                                    class="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                                    title="Quick Download PDF">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); viewWorkflow('${workflow.workflow_id}')" 
+                                    class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-xs text-green-700 bg-green-100 px-2 py-1 rounded-full inline-block">
+                        ✓ Ready for Download
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function quickDownloadPDF(workflowId) {
+            try {
+                // Get workflow content and find the content producer task
+                const response = await fetch(`${API_BASE_URL}/rpc`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'get_task_output',
+                        params: { workflow_id: workflowId },
+                        id: Date.now().toString()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result && data.result.task_outputs) {
+                    // Find content producer task
+                    const contentTask = data.result.task_outputs.find(task => 
+                        task.agent_type === 'content_producer' && 
+                        task.outputs && 
+                        task.outputs.primary_output
+                    );
+                    
+                    if (contentTask) {
+                        // Temporarily create a content element for PDF generation
+                        const tempDiv = document.createElement('div');
+                        tempDiv.id = `temp-content-${contentTask.task_id}`;
+                        tempDiv.style.display = 'none';
+                        
+                        if (typeof contentTask.outputs.primary_output === 'string') {
+                            tempDiv.innerHTML = formatContent(contentTask.outputs.primary_output);
+                        } else {
+                            tempDiv.innerHTML = JSON.stringify(contentTask.outputs.primary_output, null, 2);
+                        }
+                        
+                        document.body.appendChild(tempDiv);
+                        
+                        // Download PDF
+                        await downloadAsPDF(workflowId, contentTask.task_id);
+                        
+                        // Clean up
+                        document.body.removeChild(tempDiv);
+                    } else {
+                        showError('No downloadable content found');
+                    }
+                } else {
+                    showError('Failed to load workflow content');
+                }
+            } catch (error) {
+                showError(`Error downloading PDF: ${error.message}`);
+            }
         }
         
         async function viewWorkflow(workflowId) {
@@ -662,23 +779,55 @@
                         }
                         
                         if (task.outputs.primary_output) {
-                            contentHtml += '<div class="bg-white p-3 rounded border-l-4 border-blue-400 mb-3">';
+                            // Check if this is substantial content worth downloading
+                            const hasSubstantialContent = (typeof task.outputs.primary_output === 'string' && task.outputs.primary_output.length > 100) ||
+                                                         (typeof task.outputs.primary_output === 'object' && !task.outputs.primary_output.error);
+                            
+                            contentHtml += '<div class="bg-white p-3 rounded border-l-4 border-blue-400 mb-3 relative">';
+                            
+                            // Add download and copy buttons for content with substantial output
+                            if (task.agent_type === 'content_producer' && hasSubstantialContent) {
+                                contentHtml += `
+                                    <div class="absolute top-2 right-2 flex space-x-2">
+                                        <button onclick="downloadAsPDF('${workflowData.workflow_id}', '${task.task_id}')" 
+                                                class="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors flex items-center space-x-1"
+                                                title="Download as PDF">
+                                            <i class="fas fa-file-pdf"></i>
+                                            <span>PDF</span>
+                                        </button>
+                                        <button onclick="copyContent('${task.task_id}')" 
+                                                class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors flex items-center space-x-1"
+                                                title="Copy to clipboard">
+                                            <i class="fas fa-copy"></i>
+                                            <span>Copy</span>
+                                        </button>
+                                        <button onclick="viewFullContent('${workflowData.workflow_id}', '${task.task_id}')" 
+                                                class="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors flex items-center space-x-1"
+                                                title="View full content">
+                                            <i class="fas fa-expand"></i>
+                                            <span>Full</span>
+                                        </button>
+                                    </div>
+                                `;
+                            }
                             
                             if (typeof task.outputs.primary_output === 'string') {
-                                contentHtml += `<div class="prose prose-sm">${formatContent(task.outputs.primary_output)}</div>`;
+                                contentHtml += `<div id="content-${task.task_id}" class="prose prose-sm pr-24">${formatContent(task.outputs.primary_output)}</div>`;
                             } else if (typeof task.outputs.primary_output === 'object') {
+                                let structuredContent = '';
                                 for (const [key, value] of Object.entries(task.outputs.primary_output)) {
                                     if (typeof value === 'object') {
-                                        contentHtml += `
+                                        structuredContent += `
                                             <div class="mb-3">
                                                 <h6 class="font-medium text-sm mb-2">${key.replace(/_/g, ' ')}</h6>
                                                 <pre class="text-xs bg-gray-100 p-2 rounded overflow-x-auto">${JSON.stringify(value, null, 2)}</pre>
                                             </div>
                                         `;
                                     } else {
-                                        contentHtml += `<div class="mb-2 text-sm"><strong>${key.replace(/_/g, ' ')}:</strong> ${value}</div>`;
+                                        structuredContent += `<div class="mb-2 text-sm"><strong>${key.replace(/_/g, ' ')}:</strong> ${value}</div>`;
                                     }
                                 }
+                                contentHtml += `<div id="content-${task.task_id}" class="pr-24">${structuredContent}</div>`;
                             }
                             
                             contentHtml += '</div>';
@@ -1069,6 +1218,169 @@
                 // Escape key to close document panel
                 if (e.key === 'Escape' && activeWorkflow) {
                     closeDocumentPanel();
+                }
+            });
+        }
+        
+        // Content download and interaction functions
+        async function downloadAsPDF(workflowId, taskId) {
+            try {
+                showLoading('Generating PDF...');
+                
+                const contentElement = document.getElementById(`content-${taskId}`);
+                if (!contentElement) {
+                    showError('Content not found');
+                    return;
+                }
+                
+                // Create a temporary container for PDF generation
+                const tempContainer = document.createElement('div');
+                tempContainer.style.width = '800px';
+                tempContainer.style.padding = '40px';
+                tempContainer.style.backgroundColor = 'white';
+                tempContainer.style.fontFamily = 'Arial, sans-serif';
+                tempContainer.style.position = 'absolute';
+                tempContainer.style.left = '-9999px';
+                
+                // Get workflow info
+                const workflow = workflows.find(w => w.workflow_id === workflowId);
+                const workflowName = workflow ? workflow.name : 'AI Generated Content';
+                
+                // Create header
+                const header = document.createElement('div');
+                header.innerHTML = `
+                    <div style="border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px;">
+                        <h1 style="font-size: 24px; font-weight: bold; color: #1f2937; margin: 0;">${workflowName}</h1>
+                        <p style="color: #6b7280; margin: 5px 0 0 0; font-size: 14px;">Generated by IsThereEnoughMoney AI Workforce</p>
+                        <p style="color: #6b7280; margin: 5px 0 0 0; font-size: 12px;">Workflow ID: ${workflowId}</p>
+                        <p style="color: #6b7280; margin: 5px 0 0 0; font-size: 12px;">Generated: ${new Date().toLocaleString()}</p>
+                    </div>
+                `;
+                
+                // Clone and clean content
+                const contentClone = contentElement.cloneNode(true);
+                // Remove any buttons or interactive elements
+                contentClone.querySelectorAll('button').forEach(btn => btn.remove());
+                // Clean up styling for print
+                contentClone.style.padding = '0';
+                contentClone.style.fontSize = '14px';
+                contentClone.style.lineHeight = '1.6';
+                contentClone.style.color = '#374151';
+                
+                tempContainer.appendChild(header);
+                tempContainer.appendChild(contentClone);
+                document.body.appendChild(tempContainer);
+                
+                // Generate PDF using html2canvas + jsPDF
+                const canvas = await html2canvas(tempContainer, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true
+                });
+                
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                const imgWidth = 210; // A4 width in mm
+                const pageHeight = 295; // A4 height in mm
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                // Add first page
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                // Add additional pages if needed
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                // Clean up
+                document.body.removeChild(tempContainer);
+                
+                // Download
+                const filename = `${workflowName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.pdf`;
+                pdf.save(filename);
+                
+                showSuccess('PDF downloaded successfully!');
+                
+            } catch (error) {
+                showError(`Error generating PDF: ${error.message}`);
+            }
+        }
+        
+        async function copyContent(taskId) {
+            try {
+                const contentElement = document.getElementById(`content-${taskId}`);
+                if (!contentElement) {
+                    showError('Content not found');
+                    return;
+                }
+                
+                // Extract text content
+                let textContent = contentElement.innerText || contentElement.textContent;
+                
+                // Clean up the text
+                textContent = textContent
+                    .replace(/\s+/g, ' ')
+                    .replace(/^\s+|\s+$/g, '')
+                    .trim();
+                
+                await navigator.clipboard.writeText(textContent);
+                showSuccess('Content copied to clipboard!');
+                
+            } catch (error) {
+                showError(`Error copying content: ${error.message}`);
+            }
+        }
+        
+        function viewFullContent(workflowId, taskId) {
+            const contentElement = document.getElementById(`content-${taskId}`);
+            if (!contentElement) {
+                showError('Content not found');
+                return;
+            }
+            
+            // Create full-screen modal
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg max-w-4xl w-full h-5/6 flex flex-col">
+                    <div class="flex items-center justify-between p-4 border-b">
+                        <h3 class="text-lg font-semibold">Full Content View</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="downloadAsPDF('${workflowId}', '${taskId}')" 
+                                    class="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600">
+                                <i class="fas fa-file-pdf mr-1"></i>Download PDF
+                            </button>
+                            <button onclick="copyContent('${taskId}')" 
+                                    class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
+                                <i class="fas fa-copy mr-1"></i>Copy
+                            </button>
+                            <button onclick="this.closest('.fixed').remove()" 
+                                    class="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600">
+                                <i class="fas fa-times mr-1"></i>Close
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6">
+                        <div class="prose max-w-none">
+                            ${contentElement.innerHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Close on outside click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
                 }
             });
         }
