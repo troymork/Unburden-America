@@ -30,9 +30,9 @@ class DashboardHandler(SimpleHTTPRequestHandler):
     
     def do_GET(self):
         """Handle GET requests"""
-        # Serve index.html for root path
+        # Serve unified.html for root path
         if self.path == '/':
-            self.path = '/index.html'
+            self.path = '/unified.html'
         
         return super().do_GET()
 

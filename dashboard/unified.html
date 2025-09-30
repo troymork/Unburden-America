@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IsThereEnoughMoney AI Workforce - Unified Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #f59e0b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+        
+        .dashboard-container {
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: auto 1fr;
+            grid-template-areas: 
+                "header header"
+                "sidebar main";
+        }
+        
+        .header {
+            grid-area: header;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            z-index: 50;
+        }
+        
+        .sidebar {
+            grid-area: sidebar;
+            background: var(--bg-primary);
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            grid-area: main;
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr;
+            transition: grid-template-columns 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .main-content.document-open {
+            grid-template-columns: 1fr 400px;
+        }
+        
+        .content-area {
+            padding: 24px;
+            overflow-y: auto;
+        }
+        
+        .document-panel {
+            background: var(--bg-primary);
+            border-left: 1px solid var(--border-color);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .document-panel.open {
+            transform: translateX(0);
+        }
+        
+        .workflow-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .workflow-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .agent-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            margin: 2px;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .content-type-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .content-type-card {
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .content-type-card:hover {
+            border-color: var(--primary-color);
+            background: #eff6ff;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "header"
+                    "main";
+            }
+            
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 64px;
+                width: 280px;
+                height: calc(100vh - 64px);
+                z-index: 40;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="flex items-center space-x-4">
+                <button id="sidebarToggle" class="md:hidden p-2 hover:bg-gray-100 rounded-lg">
+                    <i class="fas fa-bars text-gray-600"></i>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-semibold text-gray-900">IsThereEnoughMoney AI Workforce</h1>
+                        <p class="text-xs text-gray-500">Campaign Automation & Content Generation</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 text-sm text-gray-600">
+                    <div class="status-indicator bg-green-500"></div>
+                    <span id="systemStatus">System Online</span>
+                </div>
+                <button id="helpBtn" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Help & Shortcuts">
+                    <i class="fas fa-question-circle text-gray-600"></i>
+                </button>
+                <button id="refreshBtn" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Refresh">
+                    <i class="fas fa-sync-alt text-gray-600"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- Quick Actions -->
+            <div class="mb-8">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-lightning-bolt text-yellow-500 mr-2"></i>
+                    Quick Create
+                </h3>
+                <div class="content-type-selector">
+                    <div class="content-type-card" data-type="educational">
+                        <div class="text-2xl mb-2">📚</div>
+                        <div class="text-xs font-medium">Educational</div>
+                    </div>
+                    <div class="content-type-card" data-type="social">
+                        <div class="text-2xl mb-2">📱</div>
+                        <div class="text-xs font-medium">Social Media</div>
+                    </div>
+                    <div class="content-type-card" data-type="policy">
+                        <div class="text-2xl mb-2">📋</div>
+                        <div class="text-xs font-medium">Policy Brief</div>
+                    </div>
+                    <div class="content-type-card" data-type="campaign">
+                        <div class="text-2xl mb-2">🎯</div>
+                        <div class="text-xs font-medium">Campaign</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Status -->
+            <div class="mb-8">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-users text-blue-500 mr-2"></i>
+                    Active Agents
+                </h3>
+                <div id="agentStatus" class="space-y-2">
+                    <!-- Agent status items will be populated here -->
+                </div>
+            </div>
+
+            <!-- System Metrics -->
+            <div class="mb-8">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-chart-bar text-green-500 mr-2"></i>
+                    Metrics
+                </h3>
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-600">Workflows Today</span>
+                            <span id="workflowCount" class="font-medium">0</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-600">Success Rate</span>
+                            <span id="successRate" class="font-medium">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-600">Avg Quality Score</span>
+                            <span id="qualityScore" class="font-medium">0.0</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content" id="mainContent">
+            <div class="content-area">
+                <!-- Conversation Starter (Manus.AI Style) -->
+                <div class="text-center py-12 mb-8">
+                    <div class="max-w-2xl mx-auto">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Hello! What can I create for you?</h2>
+                        <p class="text-gray-600 mb-8">Generate campaign content, policy documents, social media posts, and more with our AI workforce.</p>
+                        
+                        <!-- Content Type Grid (Manus Style) -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                            <div class="content-type-card" data-type="educational">
+                                <div class="text-3xl mb-3">📚</div>
+                                <div class="text-sm font-medium">Educational Article</div>
+                                <div class="text-xs text-gray-500 mt-1">Research & explain complex topics</div>
+                            </div>
+                            <div class="content-type-card" data-type="social">
+                                <div class="text-3xl mb-3">📱</div>
+                                <div class="text-sm font-medium">Social Media</div>
+                                <div class="text-xs text-gray-500 mt-1">Engaging posts & campaigns</div>
+                            </div>
+                            <div class="content-type-card" data-type="policy">
+                                <div class="text-3xl mb-3">📋</div>
+                                <div class="text-sm font-medium">Policy Brief</div>
+                                <div class="text-xs text-gray-500 mt-1">Professional analysis</div>
+                            </div>
+                            <div class="content-type-card" data-type="campaign">
+                                <div class="text-3xl mb-3">🎯</div>
+                                <div class="text-sm font-medium">Campaign Material</div>
+                                <div class="text-xs text-gray-500 mt-1">Persuasive content</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Input -->
+                        <div class="max-w-md mx-auto">
+                            <div class="flex space-x-2">
+                                <input type="text" id="quickPrompt" placeholder="Describe what you need..." 
+                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <button id="quickCreateBtn" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-magic"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workflows Section -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold text-gray-900">Recent Workflows</h3>
+                        <button id="loadWorkflowsBtn" class="flex items-center space-x-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                    <div id="workflowsList" class="space-y-4">
+                        <!-- Workflow cards will be populated here -->
+                        <div class="text-center py-12 text-gray-500">
+                            <div class="text-4xl mb-4">🤖</div>
+                            <p>No workflows yet. Create your first AI-generated content above!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Document Panel -->
+            <div class="document-panel" id="documentPanel">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900" id="documentTitle">Document Viewer</h3>
+                        <button id="closePanelBtn" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i class="fas fa-times text-gray-600"></i>
+                        </button>
+                    </div>
+                    <div id="documentContent" class="prose max-w-none">
+                        <!-- Document content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification System -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Toasts will be inserted here -->
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Keyboard Shortcuts</h3>
+                <button id="closeHelpBtn" class="p-2 hover:bg-gray-100 rounded-lg">
+                    <i class="fas fa-times text-gray-600"></i>
+                </button>
+            </div>
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Refresh workflows</span>
+                    <kbd class="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + R</kbd>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Educational content</span>
+                    <kbd class="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + 1</kbd>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Social media content</span>
+                    <kbd class="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + 2</kbd>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Policy brief</span>
+                    <kbd class="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + 3</kbd>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Campaign material</span>
+                    <kbd class="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl + 4</kbd>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Close document panel</span>
+                    <kbd class="px-2 py-1 bg-gray-100 rounded text-xs">Esc</kbd>
+                </div>
+            </div>
+            <div class="mt-6 text-xs text-gray-500">
+                <p><strong>Tip:</strong> Click any workflow card to view detailed agent outputs and generated content.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://7801-ipfd396blyulfd9cys1cy-6532622b.e2b.dev';
+        
+        // State management
+        let workflows = [];
+        let activeWorkflow = null;
+        
+        // DOM elements
+        const mainContent = document.getElementById('mainContent');
+        const documentPanel = document.getElementById('documentPanel');
+        const documentTitle = document.getElementById('documentTitle');
+        const documentContent = document.getElementById('documentContent');
+        const workflowsList = document.getElementById('workflowsList');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadWorkflows();
+            updateSystemStatus();
+            bindEventListeners();
+            bindKeyboardShortcuts();
+        });
+        
+        function bindEventListeners() {
+            // Content type selectors
+            document.querySelectorAll('.content-type-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const type = card.dataset.type;
+                    createContent(type);
+                });
+            });
+            
+            // Quick create
+            document.getElementById('quickCreateBtn').addEventListener('click', handleQuickCreate);
+            document.getElementById('quickPrompt').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleQuickCreate();
+            });
+            
+            // Panel controls
+            document.getElementById('closePanelBtn').addEventListener('click', closeDocumentPanel);
+            document.getElementById('loadWorkflowsBtn').addEventListener('click', loadWorkflows);
+            document.getElementById('refreshBtn').addEventListener('click', () => {
+                loadWorkflows();
+                updateSystemStatus();
+            });
+            
+            // Help modal
+            document.getElementById('helpBtn').addEventListener('click', () => {
+                document.getElementById('helpModal').classList.remove('hidden');
+            });
+            document.getElementById('closeHelpBtn').addEventListener('click', () => {
+                document.getElementById('helpModal').classList.add('hidden');
+            });
+            document.getElementById('helpModal').addEventListener('click', (e) => {
+                if (e.target.id === 'helpModal') {
+                    document.getElementById('helpModal').classList.add('hidden');
+                }
+            });
+            
+            // Sidebar toggle (mobile)
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
+        }
+        
+        async function loadWorkflows() {
+            try {
+                showLoading('Loading workflows...');
+                
+                const response = await fetch(`${API_BASE_URL}/rpc`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'list_workflows',
+                        params: {},
+                        id: Date.now().toString()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result && data.result.workflows) {
+                    workflows = data.result.workflows;
+                    renderWorkflows();
+                    updateMetrics();
+                } else {
+                    showError('Failed to load workflows');
+                }
+            } catch (error) {
+                showError(`Error loading workflows: ${error.message}`);
+            }
+        }
+        
+        function renderWorkflows() {
+            if (workflows.length === 0) {
+                workflowsList.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <div class="text-4xl mb-4">🤖</div>
+                        <p>No workflows yet. Create your first AI-generated content above!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            workflowsList.innerHTML = workflows.map(workflow => `
+                <div class="workflow-card fade-in" data-workflow-id="${workflow.workflow_id}">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex-1">
+                            <h4 class="font-medium text-gray-900">${workflow.name}</h4>
+                            <p class="text-sm text-gray-500">${new Date(workflow.created_at).toLocaleString()}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            ${getStatusBadge(workflow.status)}
+                            <button class="view-workflow-btn p-2 hover:bg-gray-100 rounded-lg transition-colors" data-workflow-id="${workflow.workflow_id}">
+                                <i class="fas fa-eye text-gray-600"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-600 mb-3">
+                        <i class="fas fa-tasks mr-2"></i>
+                        <span>${workflow.task_count} tasks</span>
+                        <span class="mx-2">•</span>
+                        <i class="fas fa-clock mr-2"></i>
+                        <span>${getRelativeTime(workflow.created_at)}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${getProgressPercentage(workflow.status)}%"></div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Bind click events to workflow cards
+            document.querySelectorAll('.workflow-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    if (!e.target.closest('.view-workflow-btn')) {
+                        const workflowId = card.dataset.workflowId;
+                        viewWorkflow(workflowId);
+                    }
+                });
+            });
+            
+            // Bind view buttons
+            document.querySelectorAll('.view-workflow-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const workflowId = btn.dataset.workflowId;
+                    viewWorkflow(workflowId);
+                });
+            });
+        }
+        
+        async function viewWorkflow(workflowId) {
+            try {
+                showLoading('Loading workflow details...');
+                
+                const response = await fetch(`${API_BASE_URL}/rpc`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'get_task_output',
+                        params: { workflow_id: workflowId },
+                        id: Date.now().toString()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result) {
+                    openDocumentPanel(data.result);
+                } else if (data.error) {
+                    showError(`API Error: ${data.error}`);
+                } else {
+                    showError('Failed to load workflow details');
+                }
+            } catch (error) {
+                showError(`Error loading workflow: ${error.message}`);
+            }
+        }
+        
+        function openDocumentPanel(workflowData) {
+            activeWorkflow = workflowData;
+            documentTitle.textContent = workflowData.workflow_name;
+            
+            let contentHtml = `
+                <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-medium">Workflow: ${workflowData.workflow_name}</h4>
+                        <span class="agent-badge ${getStatusColor(workflowData.workflow_status)}">${workflowData.workflow_status}</span>
+                    </div>
+                    <p class="text-sm text-gray-600">ID: ${workflowData.workflow_id}</p>
+                </div>
+            `;
+            
+            if (workflowData.task_outputs && workflowData.task_outputs.length > 0) {
+                workflowData.task_outputs.forEach(task => {
+                    const agentIcon = getAgentIcon(task.agent_type);
+                    const statusColor = getStatusColor(task.status);
+                    
+                    contentHtml += `
+                        <div class="mb-6 border border-gray-200 rounded-lg overflow-hidden">
+                            <div class="bg-gray-50 px-4 py-3 border-b">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-lg">${agentIcon}</span>
+                                        <h5 class="font-medium">${task.agent_type.replace(/_/g, ' ').toUpperCase()}</h5>
+                                    </div>
+                                    <span class="agent-badge ${statusColor}">${task.status}</span>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                    `;
+                    
+                    if (task.outputs) {
+                        if (task.outputs.execution_time_ms) {
+                            contentHtml += `<div class="text-xs text-gray-500 mb-3">⏱️ ${task.outputs.execution_time_ms}ms</div>`;
+                        }
+                        
+                        if (task.outputs.primary_output) {
+                            contentHtml += '<div class="bg-white p-3 rounded border-l-4 border-blue-400 mb-3">';
+                            
+                            if (typeof task.outputs.primary_output === 'string') {
+                                contentHtml += `<div class="prose prose-sm">${formatContent(task.outputs.primary_output)}</div>`;
+                            } else if (typeof task.outputs.primary_output === 'object') {
+                                for (const [key, value] of Object.entries(task.outputs.primary_output)) {
+                                    if (typeof value === 'object') {
+                                        contentHtml += `
+                                            <div class="mb-3">
+                                                <h6 class="font-medium text-sm mb-2">${key.replace(/_/g, ' ')}</h6>
+                                                <pre class="text-xs bg-gray-100 p-2 rounded overflow-x-auto">${JSON.stringify(value, null, 2)}</pre>
+                                            </div>
+                                        `;
+                                    } else {
+                                        contentHtml += `<div class="mb-2 text-sm"><strong>${key.replace(/_/g, ' ')}:</strong> ${value}</div>`;
+                                    }
+                                }
+                            }
+                            
+                            contentHtml += '</div>';
+                        }
+                        
+                        if (task.outputs.quality_gate_failures && task.outputs.quality_gate_failures.length > 0) {
+                            contentHtml += `
+                                <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
+                                    <div class="text-sm font-medium text-yellow-800 mb-1">⚠️ Quality Issues:</div>
+                                    ${task.outputs.quality_gate_failures.map(failure => 
+                                        `<div class="text-xs text-yellow-700">• ${failure}</div>`
+                                    ).join('')}
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    contentHtml += '</div></div>';
+                });
+            } else {
+                contentHtml += '<div class="text-center py-8 text-gray-500">No task outputs available</div>';
+            }
+            
+            documentContent.innerHTML = contentHtml;
+            
+            // Open the panel
+            mainContent.classList.add('document-open');
+            documentPanel.classList.add('open');
+        }
+        
+        function closeDocumentPanel() {
+            mainContent.classList.remove('document-open');
+            documentPanel.classList.remove('open');
+            activeWorkflow = null;
+        }
+        
+        async function createContent(type) {
+            // Add loading state to the clicked card
+            const cards = document.querySelectorAll(`[data-type="${type}"]`);
+            cards.forEach(card => {
+                card.style.pointerEvents = 'none';
+                card.style.opacity = '0.6';
+                const originalContent = card.innerHTML;
+                card.innerHTML = `
+                    <div class="loading-spinner mx-auto mb-2"></div>
+                    <div class="text-xs font-medium">Creating...</div>
+                `;
+                
+                // Store original content for restore
+                card.dataset.originalContent = originalContent;
+            });
+            
+            const contentTypes = {
+                'educational': {
+                    intent: 'Create educational content about economic reform',
+                    payload: { topic: 'Understanding the Monetary Flow Tax', audience: 'general public', tone: 'educational' }
+                },
+                'social': {
+                    intent: 'Create social media content for economic awareness',
+                    payload: { topic: 'Tax the System, Not the People', platform: 'twitter', audience: 'working families' }
+                },
+                'policy': {
+                    intent: 'Create policy briefing document',
+                    payload: { topic: 'Monetary Flow Tax Implementation', audience: 'policymakers', tone: 'professional' }
+                },
+                'campaign': {
+                    intent: 'Create campaign material for movement growth',
+                    payload: { topic: 'Unburden America Campaign', audience: 'voters', tone: 'inspiring' }
+                }
+            };
+            
+            const config = contentTypes[type];
+            if (!config) {
+                restoreCards(type);
+                return;
+            }
+            
+            try {
+                showLoading(`Creating ${type} content with AI workforce...`);
+                
+                const response = await fetch(`${API_BASE_URL}/rpc`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'route_intent',
+                        params: config,
+                        id: Date.now().toString()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result && data.result.workflow_id) {
+                    showSuccess(`✅ ${type} workflow launched! ID: ${data.result.workflow_id.substring(0, 8)}... Will refresh results in 15 seconds.`);
+                    
+                    // Show success state briefly
+                    cards.forEach(card => {
+                        card.innerHTML = `
+                            <div class="text-2xl mb-2">✅</div>
+                            <div class="text-xs font-medium">Created!</div>
+                        `;
+                    });
+                    
+                    setTimeout(() => {
+                        restoreCards(type);
+                        loadWorkflows();
+                    }, 15000);
+                } else if (data.error) {
+                    showError(`Failed to create ${type} content: ${data.error}`);
+                    restoreCards(type);
+                } else {
+                    showError(`Failed to create ${type} content: Unknown error`);
+                    restoreCards(type);
+                }
+            } catch (error) {
+                showError(`Error creating ${type} content: ${error.message}`);
+                restoreCards(type);
+            }
+        }
+        
+        function restoreCards(type) {
+            const cards = document.querySelectorAll(`[data-type="${type}"]`);
+            cards.forEach(card => {
+                if (card.dataset.originalContent) {
+                    card.innerHTML = card.dataset.originalContent;
+                    delete card.dataset.originalContent;
+                }
+                card.style.pointerEvents = '';
+                card.style.opacity = '';
+            });
+        }
+        
+        function handleQuickCreate() {
+            const prompt = document.getElementById('quickPrompt').value.trim();
+            if (!prompt) return;
+            
+            // Simple intent classification
+            const educationalKeywords = ['explain', 'understand', 'learn', 'education', 'tutorial'];
+            const socialKeywords = ['post', 'social', 'tweet', 'share', 'engage'];
+            const policyKeywords = ['policy', 'brief', 'analysis', 'government', 'legislation'];
+            
+            let type = 'educational'; // default
+            if (socialKeywords.some(word => prompt.toLowerCase().includes(word))) {
+                type = 'social';
+            } else if (policyKeywords.some(word => prompt.toLowerCase().includes(word))) {
+                type = 'policy';
+            }
+            
+            createContent(type);
+            document.getElementById('quickPrompt').value = '';
+        }
+        
+        function updateSystemStatus() {
+            // Update system status indicator
+            document.getElementById('systemStatus').textContent = 'System Online';
+        }
+        
+        function updateMetrics() {
+            const completedCount = workflows.filter(w => w.status === 'completed').length;
+            const totalCount = workflows.length;
+            const successRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+            
+            document.getElementById('workflowCount').textContent = totalCount;
+            document.getElementById('successRate').textContent = `${successRate}%`;
+            document.getElementById('qualityScore').textContent = '0.85'; // Mock quality score
+            
+            // Update progress bars
+            const progressBars = document.querySelectorAll('.progress-fill');
+            if (progressBars.length >= 3) {
+                progressBars[0].style.width = `${Math.min((totalCount / 10) * 100, 100)}%`;
+                progressBars[1].style.width = `${successRate}%`;
+                progressBars[2].style.width = '85%'; // Mock quality score
+            }
+        }
+        
+        // Helper functions
+        function getStatusBadge(status) {
+            const colors = {
+                'completed': 'bg-green-100 text-green-800',
+                'in_progress': 'bg-blue-100 text-blue-800',
+                'failed': 'bg-red-100 text-red-800',
+                'pending': 'bg-yellow-100 text-yellow-800'
+            };
+            
+            return `<span class="agent-badge ${colors[status] || 'bg-gray-100 text-gray-800'}">${status}</span>`;
+        }
+        
+        function getStatusColor(status) {
+            const colors = {
+                'completed': 'bg-green-100 text-green-800',
+                'success': 'bg-green-100 text-green-800',
+                'in_progress': 'bg-blue-100 text-blue-800',
+                'failed': 'bg-red-100 text-red-800',
+                'error': 'bg-red-100 text-red-800',
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'needs_review': 'bg-yellow-100 text-yellow-800'
+            };
+            
+            return colors[status] || 'bg-gray-100 text-gray-800';
+        }
+        
+        function getAgentIcon(agentType) {
+            const icons = {
+                'content_producer': '✍️',
+                'fact_checker': '🔍',
+                'compliance_reviewer': '⚖️',
+                'narrative_developer': '📖',
+                'visual_designer': '🎨',
+                'social_media': '📱',
+                'analytics': '📊'
+            };
+            
+            return icons[agentType] || '🤖';
+        }
+        
+        function getProgressPercentage(status) {
+            const percentages = {
+                'pending': 0,
+                'in_progress': 50,
+                'completed': 100,
+                'failed': 100
+            };
+            
+            return percentages[status] || 0;
+        }
+        
+        function getRelativeTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        }
+        
+        function formatContent(content) {
+            return content
+                .replace(/^# (.*$)/gm, '<h1 class="text-xl font-bold mb-3">$1</h1>')
+                .replace(/^## (.*$)/gm, '<h2 class="text-lg font-semibold mb-2">$1</h2>')
+                .replace(/^### (.*$)/gm, '<h3 class="text-md font-medium mb-2">$1</h3>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n\n/g, '</p><p class="mb-2">')
+                .replace(/\n/g, '<br>')
+                .replace(/^(.*)$/gm, '<p class="mb-2">$1</p>');
+        }
+        
+        function showToast(message, type = 'info', duration = 5000) {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                'info': 'bg-blue-500',
+                'success': 'bg-green-500', 
+                'warning': 'bg-yellow-500',
+                'error': 'bg-red-500'
+            };
+            
+            const icons = {
+                'info': 'fas fa-info-circle',
+                'success': 'fas fa-check-circle',
+                'warning': 'fas fa-exclamation-triangle', 
+                'error': 'fas fa-times-circle'
+            };
+            
+            toast.className = `${colors[type]} text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-3 max-w-md transform transition-all duration-300 translate-x-full opacity-0`;
+            
+            toast.innerHTML = `
+                <i class="${icons[type]}"></i>
+                <span class="flex-1">${message}</span>
+                <button class="toast-close ml-2 hover:opacity-75">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            }, 100);
+            
+            // Auto remove
+            const autoRemove = setTimeout(() => {
+                removeToast(toast);
+            }, duration);
+            
+            // Manual close
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                clearTimeout(autoRemove);
+                removeToast(toast);
+            });
+        }
+        
+        function removeToast(toast) {
+            toast.classList.add('translate-x-full', 'opacity-0');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }
+        
+        function showLoading(message) {
+            showToast(message, 'info');
+        }
+        
+        function showSuccess(message) {
+            showToast(message, 'success');
+        }
+        
+        function showError(message) {
+            showToast(message, 'error');
+        }
+        
+        function bindKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Only trigger when not in an input field
+                if (e.target.tagName.toLowerCase() === 'input') return;
+                
+                // Shortcuts
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'r':
+                            e.preventDefault();
+                            loadWorkflows();
+                            showToast('Workflows refreshed', 'info', 2000);
+                            break;
+                        case '1':
+                            e.preventDefault();
+                            createContent('educational');
+                            break;
+                        case '2':
+                            e.preventDefault();
+                            createContent('social');
+                            break;
+                        case '3':
+                            e.preventDefault();
+                            createContent('policy');
+                            break;
+                        case '4':
+                            e.preventDefault();
+                            createContent('campaign');
+                            break;
+                    }
+                }
+                
+                // Escape key to close document panel
+                if (e.key === 'Escape' && activeWorkflow) {
+                    closeDocumentPanel();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
