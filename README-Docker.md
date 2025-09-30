@@ -61,6 +61,9 @@ Analytics ← Content ← Petition ← Verification Gates
 ```bash
 # Security (CHANGE THESE!)
 POSTGRES_PASSWORD=your_secure_password
+AGENT_DB_PASSWORD=agent_db_password
+ANALYTICS_DB_PASSWORD=analytics_db_password
+PETITION_DB_PASSWORD=petition_db_password
 N8N_JWT_SECRET=your_jwt_secret_32_chars_min
 API_SECRET_KEY=your_api_secret_32_chars_min
 
@@ -72,6 +75,11 @@ ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
 SMTP_HOST=smtp.gmail.com
 SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-app-password
+SMTP_SENDER=noreply@your-domain.com
+
+# n8n Workflow Defaults
+WEBHOOK_BASE_URL=http://localhost:5678
+NOTIFICATION_EMAIL=alerts@your-domain.com
 ```
 
 ### Optional Configuration
