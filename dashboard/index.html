@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IsThereEnoughMoney - AI Campaign Management Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-pending { background-color: #fbbf24; }
+        .status-in_progress { background-color: #3b82f6; }
+        .status-completed { background-color: #10b981; }
+        .status-failed { background-color: #ef4444; }
+        .status-blocked { background-color: #6b7280; }
+        
+        .workflow-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        .workflow-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        .workflow-card.priority-high { border-left-color: #ef4444; }
+        .workflow-card.priority-medium { border-left-color: #f59e0b; }
+        .workflow-card.priority-low { border-left-color: #10b981; }
+        .workflow-card.priority-critical { border-left-color: #8b5cf6; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold">IsThereEnoughMoney Movement</h1>
+                    <span class="ml-3 px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">AI Campaign Dashboard</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <div id="connectionStatus" class="status-indicator status-failed"></div>
+                        <span id="connectionText">Connecting...</span>
+                    </div>
+                    <button onclick="refreshDashboard()" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="container mx-auto px-6 py-8" x-data="dashboardData">
+        
+        <!-- Quick Stats Overview -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Active Workflows</p>
+                        <p class="text-3xl font-bold text-blue-600" x-text="stats.activeWorkflows">0</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Completed Today</p>
+                        <p class="text-3xl font-bold text-green-600" x-text="stats.completedToday">0</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Success Rate</p>
+                        <p class="text-3xl font-bold text-purple-600" x-text="stats.successRate + '%'">0%</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Available Agents</p>
+                        <p class="text-3xl font-bold text-indigo-600" x-text="stats.availableAgents">0</p>
+                    </div>
+                    <div class="bg-indigo-100 p-3 rounded-full">
+                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Campaign Actions -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Quick Actions -->
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <h2 class="text-xl font-bold mb-4">Quick Actions</h2>
+                <div class="space-y-3">
+                    <button onclick="createContentWorkflow()" 
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                        </svg>
+                        Create Content
+                    </button>
+                    
+                    <button onclick="launchSocialCampaign()"
+                            class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg transition flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011 1v8a1 1 0 01-1 1M7 4H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1m-1 4H8m8 0V9a1 1 0 00-1-1H9a1 1 0 00-1 1v1m8 0v5H8v-5m8 0H8"></path>
+                        </svg>
+                        Social Campaign
+                    </button>
+                    
+                    <button onclick="optimizePetition()"
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg transition flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Optimize Petition
+                    </button>
+                    
+                    <button onclick="startFundraisingCampaign()"
+                            class="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-4 rounded-lg transition flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Fundraising
+                    </button>
+                </div>
+            </div>
+
+            <!-- Agent Status -->
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <h2 class="text-xl font-bold mb-4">Agent Registry</h2>
+                <div class="space-y-2 max-h-80 overflow-y-auto">
+                    <template x-for="agent in agents" :key="agent.type">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="status-indicator status-completed"></div>
+                                <div>
+                                    <p class="font-medium text-sm" x-text="agent.type.replace('_', ' ').toUpperCase()">Agent</p>
+                                    <p class="text-xs text-gray-600" x-text="agent.capabilities.join(', ')">Capabilities</p>
+                                </div>
+                            </div>
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Online</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- System Health -->
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <h2 class="text-xl font-bold mb-4">System Health</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">MCP Server</span>
+                        <span id="mcpStatus" class="text-sm bg-red-100 text-red-800 px-2 py-1 rounded-full">Offline</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Orchestrator</span>
+                        <span id="orchestratorStatus" class="text-sm bg-red-100 text-red-800 px-2 py-1 rounded-full">Offline</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Agent Pool</span>
+                        <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full">9 Agents</span>
+                    </div>
+                    
+                    <!-- Performance Metrics -->
+                    <div class="mt-4 pt-4 border-t">
+                        <h3 class="text-sm font-medium mb-2">Performance</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span>Avg Response Time</span>
+                                <span id="avgResponseTime">-- ms</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span>Uptime</span>
+                                <span id="uptime">--:--:--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Active Workflows -->
+        <section class="bg-white rounded-xl card-shadow p-6 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold">Active Workflows</h2>
+                <div class="flex space-x-2">
+                    <select class="px-3 py-1 border border-gray-300 rounded-md text-sm" 
+                            onchange="filterWorkflows(this.value)">
+                        <option value="all">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="workflowsContainer" class="space-y-4">
+                <template x-for="workflow in workflows" :key="workflow.workflow_id">
+                    <div class="workflow-card bg-gray-50 p-4 rounded-lg card-shadow" 
+                         :class="'priority-' + (workflow.priority || 'medium')">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <div class="status-indicator" 
+                                     :class="'status-' + workflow.status"></div>
+                                <div>
+                                    <h3 class="font-medium" x-text="workflow.name">Workflow Name</h3>
+                                    <p class="text-sm text-gray-600" x-text="workflow.workflow_id">ID</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-600" x-text="new Date(workflow.created_at).toLocaleString()">Created</p>
+                                <button onclick="viewWorkflowDetails(this)" 
+                                        :data-workflow-id="workflow.workflow_id"
+                                        class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full hover:bg-blue-200 transition">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center text-sm mb-1">
+                                    <span class="text-gray-600">Progress:</span>
+                                    <span class="ml-2 font-medium" 
+                                          x-text="Math.round((workflow.task_count || 0) > 0 ? ((workflow.completed_tasks || 0) / workflow.task_count * 100) : 0) + '%'">0%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                         :style="'width: ' + Math.round((workflow.task_count || 0) > 0 ? ((workflow.completed_tasks || 0) / workflow.task_count * 100) : 0) + '%'"></div>
+                                </div>
+                            </div>
+                            <div class="ml-4 text-right">
+                                <p class="text-sm text-gray-600">Tasks</p>
+                                <p class="font-medium" x-text="(workflow.completed_tasks || 0) + '/' + (workflow.task_count || 0)">0/0</p>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                
+                <!-- Empty state -->
+                <div x-show="workflows.length === 0" class="text-center py-8 text-gray-500">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <p>No active workflows found</p>
+                    <p class="text-sm">Create a new workflow to get started</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Movement Mission Statement -->
+        <section class="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl p-8 mb-8">
+            <div class="max-w-4xl">
+                <h2 class="text-2xl font-bold mb-4">🇺🇸 The IsThereEnoughMoney Movement</h2>
+                <p class="text-lg mb-6 opacity-95">
+                    We exist to lift the crushing weight of debt from the backs of everyday Americans and create a solvent, abundant future.
+                </p>
+                <div class="grid md:grid-cols-2 gap-6 text-sm opacity-90">
+                    <div>
+                        <h3 class="font-semibold mb-2">🎯 Our Mission</h3>
+                        <p>Tax the system, not the people. End America's national debt within 8 years by tapping into the $4.7 quadrillion monetary economy with a microscopic Monetary Flow Tax.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-2">📈 The Vision</h3>
+                        <p>Unburden America by shifting from taxing the $30T real economy to the $4.7Q monetary economy - freeing families and businesses to thrive.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Workflow Details Modal -->
+    <div id="workflowModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+                <div class="p-6 border-b">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-bold" id="modalWorkflowName">Workflow Details</h2>
+                        <button onclick="closeWorkflowModal()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6" id="modalContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global configuration
+        const API_BASE_URL = 'https://7801-ipfd396blyulfd9cys1cy-6532622b.e2b.dev';
+        let dashboardInterval;
+
+        // Alpine.js data
+        function dashboardData() {
+            return {
+                stats: {
+                    activeWorkflows: 0,
+                    completedToday: 0,
+                    successRate: 0,
+                    availableAgents: 0
+                },
+                workflows: [],
+                agents: [],
+                systemHealth: {
+                    mcpServer: false,
+                    orchestrator: false
+                }
+            };
+        }
+
+        // API Functions
+        async function apiCall(method, params = {}) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/rpc`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        method: method,
+                        params: params,
+                        id: Date.now().toString()
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error(`API call failed: ${method}`, error);
+                throw error;
+            }
+        }
+
+        // Dashboard Functions
+        async function checkSystemHealth() {
+            try {
+                const healthResponse = await fetch(`${API_BASE_URL}/health`);
+                const health = await healthResponse.json();
+                
+                updateConnectionStatus(true);
+                updateSystemHealth(health);
+                
+                return true;
+            } catch (error) {
+                updateConnectionStatus(false);
+                return false;
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                // Load workflows
+                const workflowsResult = await apiCall('list_workflows');
+                if (workflowsResult.result && workflowsResult.result.workflows) {
+                    updateWorkflows(workflowsResult.result.workflows);
+                }
+
+                // Load agents
+                const agentsResult = await apiCall('get_agent_registry');
+                if (agentsResult.result && agentsResult.result.agents) {
+                    updateAgents(agentsResult.result.agents);
+                }
+
+                // Update stats
+                updateStats();
+                
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connectionStatus');
+            const textEl = document.getElementById('connectionText');
+            
+            if (connected) {
+                statusEl.className = 'status-indicator status-completed';
+                textEl.textContent = 'Connected';
+            } else {
+                statusEl.className = 'status-indicator status-failed';
+                textEl.textContent = 'Disconnected';
+            }
+        }
+
+        function updateSystemHealth(health) {
+            const mcpStatus = document.getElementById('mcpStatus');
+            const orchestratorStatus = document.getElementById('orchestratorStatus');
+            
+            mcpStatus.textContent = health.status === 'healthy' ? 'Online' : 'Offline';
+            mcpStatus.className = health.status === 'healthy' ? 
+                'text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full' :
+                'text-sm bg-red-100 text-red-800 px-2 py-1 rounded-full';
+            
+            orchestratorStatus.textContent = health.orchestrator_available ? 'Online' : 'Offline';
+            orchestratorStatus.className = health.orchestrator_available ? 
+                'text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full' :
+                'text-sm bg-red-100 text-red-800 px-2 py-1 rounded-full';
+        }
+
+        function updateWorkflows(workflows) {
+            // Update stats manually
+            const completedToday = workflows.filter(w => w.status === 'completed').length;
+            const activeWorkflows = workflows.filter(w => w.status === 'in_progress').length;
+            const successRate = workflows.length > 0 ? Math.round((completedToday / workflows.length) * 100) : 100;
+            
+            // Update DOM elements directly
+            const completedTodayEl = document.querySelector('.grid .bg-white .text-3xl');
+            if (completedTodayEl) {
+                // Find the "Completed Today" metric (second card)
+                const cards = document.querySelectorAll('.grid .bg-white .text-3xl');
+                if (cards[1]) cards[1].textContent = completedToday;
+                if (cards[2]) cards[2].textContent = successRate + '%';
+                if (cards[3]) cards[3].textContent = '9'; // Available agents
+                if (cards[0]) cards[0].textContent = activeWorkflows; // Active workflows
+            }
+            
+            // Update workflows list
+            updateWorkflowsDisplay(workflows);
+        }
+
+        function updateAgents(agents) {
+            const app = Alpine.store || window;
+            if (app.$data) {
+                app.$data.agents = Object.entries(agents).map(([type, config]) => ({
+                    type: type,
+                    description: config.description,
+                    capabilities: config.capabilities
+                }));
+            }
+        }
+
+        function updateWorkflowsDisplay(workflows) {
+            // Find the Active Workflows section content area
+            const workflowsContainer = document.querySelector('.bg-gray-50');
+            if (workflowsContainer) {
+                const contentDiv = workflowsContainer.querySelector('div');
+                if (contentDiv) {
+                    if (workflows.length === 0) {
+                        contentDiv.innerHTML = `
+                            <div class="text-center py-8">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <p class="text-gray-500">No active workflows found</p>
+                                <p class="text-gray-400 text-sm mt-1">Create a new workflow to get started</p>
+                            </div>
+                        `;
+                    } else {
+                        let workflowsHtml = '';
+                        workflows.forEach((workflow, index) => {
+                            const statusColor = workflow.status === 'completed' ? 'bg-green-100 text-green-800' : 
+                                              workflow.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                                              'bg-gray-100 text-gray-800';
+                            
+                            workflowsHtml += `
+                                <div class="bg-white p-4 rounded-lg border border-gray-200 hover:border-gray-300 cursor-pointer transition-all duration-200 mb-3">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="text-sm font-medium text-gray-900 truncate">${workflow.name}</h4>
+                                            <p class="text-xs text-gray-500 mt-1">ID: ${workflow.workflow_id.substring(0, 8)}...</p>
+                                            <p class="text-xs text-gray-500">Tasks: ${workflow.task_count} | Created: ${new Date(workflow.created_at).toLocaleString()}</p>
+                                        </div>
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusColor}">
+                                            ${workflow.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        contentDiv.innerHTML = workflowsHtml;
+                    }
+                }
+            }
+        }
+
+        function updateStats(workflows = []) {
+            const app = Alpine.store || window;
+            if (app.$data) {
+                const workflows = app.$data.workflows || [];
+                const agents = app.$data.agents || [];
+                
+                app.$data.stats = {
+                    activeWorkflows: workflows.filter(w => w.status === 'in_progress').length,
+                    completedToday: workflows.filter(w => w.status === 'completed').length,
+                    successRate: workflows.length > 0 ? 
+                        Math.round((workflows.filter(w => w.status === 'completed').length / workflows.length) * 100) : 0,
+                    availableAgents: agents.length
+                };
+            }
+        }
+
+        // Workflow Action Functions
+        async function createContentWorkflow() {
+            try {
+                const result = await apiCall('route_intent', {
+                    intent: 'Create educational content about monetary flow tax',
+                    payload: {
+                        topic: 'Understanding the Monetary Flow Tax',
+                        target_audience: 'general_public',
+                        content_type: 'educational_article',
+                        focus: 'explaining_concept_simply'
+                    },
+                    priority: 'high'
+                });
+                
+                if (result.result && result.result.workflow_id) {
+                    alert(`Content creation workflow started: ${result.result.workflow_id}`);
+                    refreshDashboard();
+                }
+            } catch (error) {
+                alert('Failed to create content workflow: ' + error.message);
+            }
+        }
+
+        async function launchSocialCampaign() {
+            try {
+                const result = await apiCall('route_intent', {
+                    intent: 'Launch social media campaign about Tax the System movement',
+                    payload: {
+                        platforms: ['twitter', 'facebook', 'instagram', 'linkedin'],
+                        campaign_theme: 'Tax the System, Not the People',
+                        target_demographics: ['working_families', 'small_business_owners'],
+                        duration_weeks: 4
+                    },
+                    priority: 'high'
+                });
+                
+                if (result.result && result.result.workflow_id) {
+                    alert(`Social media campaign launched: ${result.result.workflow_id}`);
+                    refreshDashboard();
+                }
+            } catch (error) {
+                alert('Failed to launch social campaign: ' + error.message);
+            }
+        }
+
+        async function optimizePetition() {
+            try {
+                const result = await apiCall('route_intent', {
+                    intent: 'Optimize petition funnel for Unburden America signature collection',
+                    payload: {
+                        petition_title: 'Unburden America Pledge',
+                        target_signatures: 1000000,
+                        focus_areas: ['conversion_optimization', 'user_experience', 'trust_building'],
+                        a_b_test_elements: ['headline', 'form_fields', 'call_to_action']
+                    },
+                    priority: 'medium'
+                });
+                
+                if (result.result && result.result.workflow_id) {
+                    alert(`Petition optimization started: ${result.result.workflow_id}`);
+                    refreshDashboard();
+                }
+            } catch (error) {
+                alert('Failed to optimize petition: ' + error.message);
+            }
+        }
+
+        async function startFundraisingCampaign() {
+            try {
+                const result = await apiCall('route_intent', {
+                    intent: 'Launch ethical fundraising campaign for movement operations',
+                    payload: {
+                        campaign_type: 'grassroots_fundraising',
+                        goal_amount: 100000,
+                        duration_months: 3,
+                        focus_areas: ['small_donations', 'recurring_donors', 'transparency'],
+                        ethical_standards: ['no_dark_patterns', 'transparent_use_of_funds']
+                    },
+                    priority: 'medium'
+                });
+                
+                if (result.result && result.result.workflow_id) {
+                    alert(`Fundraising campaign started: ${result.result.workflow_id}`);
+                    refreshDashboard();
+                }
+            } catch (error) {
+                alert('Failed to start fundraising campaign: ' + error.message);
+            }
+        }
+
+        async function viewWorkflowDetails(button) {
+            const workflowId = button.getAttribute('data-workflow-id');
+            
+            try {
+                const result = await apiCall('get_workflow_status', { workflow_id: workflowId });
+                const workflow = result.result;
+                
+                document.getElementById('modalWorkflowName').textContent = workflow.name;
+                
+                const modalContent = document.getElementById('modalContent');
+                modalContent.innerHTML = `
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-bold mb-3">Workflow Information</h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">ID:</span>
+                                    <span class="font-mono text-xs">${workflow.workflow_id}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Status:</span>
+                                    <span class="capitalize">${workflow.status}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Progress:</span>
+                                    <span>${workflow.progress.completion_percentage.toFixed(1)}%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Tasks:</span>
+                                    <span>${workflow.progress.completed_tasks}/${workflow.progress.total_tasks}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Created:</span>
+                                    <span>${new Date(workflow.created_at).toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-bold mb-3">Task Breakdown</h3>
+                            <div class="space-y-2 max-h-40 overflow-y-auto">
+                                ${workflow.tasks.map(task => `
+                                    <div class="flex items-center p-2 bg-gray-50 rounded">
+                                        <div class="status-indicator status-${task.status}"></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium truncate">${task.agent_type.replace('_', ' ')}</p>
+                                            <p class="text-xs text-gray-600 truncate">${task.description}</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${workflow.audit_trail && workflow.audit_trail.length > 0 ? `
+                        <div class="mt-6">
+                            <h3 class="font-bold mb-3">Audit Trail</h3>
+                            <div class="bg-gray-50 p-4 rounded-lg max-h-32 overflow-y-auto">
+                                ${workflow.audit_trail.map(entry => `
+                                    <p class="text-xs text-gray-600 mb-1">${entry}</p>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+                
+                document.getElementById('workflowModal').classList.remove('hidden');
+                
+            } catch (error) {
+                alert('Failed to load workflow details: ' + error.message);
+            }
+        }
+
+        function closeWorkflowModal() {
+            document.getElementById('workflowModal').classList.add('hidden');
+        }
+
+        function filterWorkflows(status) {
+            // This would filter the workflows display
+            // Implementation depends on how you want to handle filtering
+            console.log('Filtering workflows by status:', status);
+        }
+
+        async function refreshDashboard() {
+            await checkSystemHealth();
+            await loadDashboardData();
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initial load
+            refreshDashboard();
+            
+            // Set up auto-refresh
+            dashboardInterval = setInterval(refreshDashboard, 30000); // Refresh every 30 seconds
+            
+            // Handle page visibility changes
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') {
+                    refreshDashboard();
+                }
+            });
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (dashboardInterval) {
+                clearInterval(dashboardInterval);
+            }
+        });
+    </script>
+</body>
+</html>

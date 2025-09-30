@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detailed Debug Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .log { background: #f0f0f0; padding: 10px; margin: 5px 0; font-family: monospace; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .info { background: #e3f2fd; color: #1565c0; }
+    </style>
+</head>
+<body>
+    <h1>Detailed Debug Dashboard</h1>
+    <div id="log-container">
+        <div class="log info">Starting debug session...</div>
+    </div>
+    
+    <script>
+        const API_BASE_URL = 'https://7801-ipfd396blyulfd9cys1cy-6532622b.e2b.dev';
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            const timestamp = new Date().toISOString();
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(div);
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        async function testHealthEndpoint() {
+            try {
+                log('Testing health endpoint...', 'info');
+                
+                const url = `${API_BASE_URL}/health`;
+                log(`Fetching: ${url}`, 'info');
+                
+                const response = await fetch(url);
+                log(`Response status: ${response.status} ${response.statusText}`, 'info');
+                
+                const text = await response.text();
+                log(`Response body length: ${text.length} chars`, 'info');
+                
+                const data = JSON.parse(text);
+                log(`Health data: ${JSON.stringify(data)}`, 'success');
+                
+                return data;
+            } catch (error) {
+                log(`Health check failed: ${error.message}`, 'error');
+                log(`Error stack: ${error.stack}`, 'error');
+                throw error;
+            }
+        }
+        
+        async function testWorkflowsEndpoint() {
+            try {
+                log('Testing workflows endpoint...', 'info');
+                
+                const url = `${API_BASE_URL}/rpc`;
+                const payload = {
+                    method: 'list_workflows',
+                    params: {},
+                    id: Date.now().toString()
+                };
+                
+                log(`Fetching: ${url}`, 'info');
+                log(`Payload: ${JSON.stringify(payload)}`, 'info');
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                log(`Response status: ${response.status} ${response.statusText}`, 'info');
+                
+                const text = await response.text();
+                log(`Response body length: ${text.length} chars`, 'info');
+                
+                const data = JSON.parse(text);
+                log(`Workflows data: ${JSON.stringify(data)}`, 'success');
+                
+                if (data.result && data.result.workflows) {
+                    log(`Found ${data.result.workflows.length} workflows`, 'success');
+                    data.result.workflows.forEach((workflow, index) => {
+                        log(`Workflow ${index + 1}: ${workflow.name} (${workflow.status})`, 'success');
+                    });
+                } else {
+                    log('No workflows found in response', 'error');
+                }
+                
+                return data;
+            } catch (error) {
+                log(`Workflows check failed: ${error.message}`, 'error');
+                log(`Error stack: ${error.stack}`, 'error');
+                throw error;
+            }
+        }
+        
+        async function runFullTest() {
+            try {
+                log('=== Starting Full API Test ===', 'info');
+                
+                // Test health endpoint
+                await testHealthEndpoint();
+                
+                // Wait a bit
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Test workflows endpoint
+                await testWorkflowsEndpoint();
+                
+                log('=== Full Test Completed Successfully ===', 'success');
+            } catch (error) {
+                log('=== Full Test Failed ===', 'error');
+            }
+        }
+        
+        // Run the test
+        runFullTest();
+    </script>
+</body>
+</html>

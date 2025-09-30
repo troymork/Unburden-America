@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Content Viewer - IsThereEnoughMoney AI Workforce</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .content-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 16px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        .content-text {
+            line-height: 1.6;
+            font-family: Georgia, serif;
+        }
+        .metadata-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            font-size: 12px;
+            margin: 2px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold">🤖 AI Generated Content</h1>
+                    <p class="text-blue-100">IsThereEnoughMoney Movement - Campaign Content</p>
+                </div>
+                <div class="flex space-x-4">
+                    <button onclick="loadLatestContent()" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition">
+                        🔄 Load Latest Content
+                    </button>
+                    <a href="/" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition">
+                        📊 Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-6 py-8">
+        <!-- Status Section -->
+        <div class="content-card">
+            <h2 class="text-xl font-bold mb-4">📡 Content Generation Status</h2>
+            <div id="status" class="text-gray-600">
+                🔄 Loading content generation status...
+            </div>
+        </div>
+
+        <!-- Generated Content Section -->
+        <div class="content-card">
+            <h2 class="text-xl font-bold mb-4">📄 Generated Campaign Content</h2>
+            <div id="contentContainer">
+                <div class="text-center py-8 text-gray-500">
+                    <div class="text-4xl mb-4">📝</div>
+                    <p>Click "Load Latest Content" to view generated articles and campaign materials</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="content-card">
+            <h2 class="text-xl font-bold mb-4">🚀 Generate New Content</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <button onclick="createContent('educational')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg transition">
+                    📚 Educational Article
+                </button>
+                <button onclick="createContent('social')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg transition">
+                    📱 Social Media Post
+                </button>
+                <button onclick="createContent('policy')" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-lg transition">
+                    📋 Policy Brief
+                </button>
+                <button onclick="createContent('campaign')" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg transition">
+                    🎯 Campaign Material
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://7801-ipfd396blyulfd9cys1cy-6532622b.e2b.dev';
+        
+        async function loadLatestContent() {
+            const statusDiv = document.getElementById('status');
+            const contentContainer = document.getElementById('contentContainer');
+            
+            try {
+                statusDiv.innerHTML = '🔄 Loading workflows and generated content...';
+                
+                // Get list of workflows
+                const workflowsResponse = await fetch(`${API_BASE_URL}/rpc`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'list_workflows',
+                        params: {},
+                        id: Date.now().toString()
+                    })
+                });
+                
+                const workflowsData = await workflowsResponse.json();
+                
+                if (workflowsData.result && workflowsData.result.workflows.length > 0) {
+                    statusDiv.innerHTML = `✅ Found ${workflowsData.result.workflows.length} workflows. Loading content...`;
+                    
+                    let contentHtml = '';
+                    
+                    // Show each workflow
+                    for (const workflow of workflowsData.result.workflows) {
+                        contentHtml += `
+                            <div class="border-l-4 border-blue-500 pl-4 mb-6">
+                                <h3 class="text-lg font-semibold text-gray-800">${workflow.name}</h3>
+                                <div class="text-sm text-gray-600 mb-2">
+                                    <span class="metadata-badge">ID: ${workflow.workflow_id}</span>
+                                    <span class="metadata-badge">Status: ${workflow.status}</span>
+                                    <span class="metadata-badge">Tasks: ${workflow.task_count}</span>
+                                    <span class="metadata-badge">Created: ${new Date(workflow.created_at).toLocaleString()}</span>
+                                </div>
+                        `;
+                        
+                        // Try to get content for this workflow
+                        try {
+                            const contentResponse = await fetch(`${API_BASE_URL}/rpc`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    method: 'get_task_output',
+                                    params: { workflow_id: workflow.workflow_id },
+                                    id: Date.now().toString()
+                                })
+                            });
+                            
+                            const contentData = await contentResponse.json();
+                            
+                            if (contentData.result && contentData.result.task_outputs) {
+                                contentHtml += '<div class="mt-3">';
+                                
+                                for (const task of contentData.result.task_outputs) {
+                                    const statusColor = task.status === 'completed' ? 'bg-green-50 border-green-200' : 
+                                                       task.status === 'failed' ? 'bg-red-50 border-red-200' : 
+                                                       'bg-yellow-50 border-yellow-200';
+                                    
+                                    const agentIcon = task.agent_type === 'content_producer' ? '✍️' :
+                                                     task.agent_type === 'fact_checker' ? '🔍' :
+                                                     task.agent_type === 'compliance_reviewer' ? '⚖️' :
+                                                     task.agent_type === 'narrative_developer' ? '📖' :
+                                                     task.agent_type === 'visual_designer' ? '🎨' : '🤖';
+                                    
+                                    contentHtml += `
+                                        <div class="border p-4 rounded-lg mb-3 ${statusColor}">
+                                            <h4 class="font-medium text-gray-700 mb-2">
+                                                ${agentIcon} ${task.agent_type.replace(/_/g, ' ').toUpperCase()} 
+                                                <span class="text-sm font-normal">(${task.status})</span>
+                                            </h4>
+                                    `;
+                                    
+                                    if (task.outputs) {
+                                        // Show status and quality information
+                                        if (task.outputs.status) {
+                                            const statusBadge = task.outputs.status === 'success' ? 'bg-green-100 text-green-800' :
+                                                               task.outputs.status === 'needs_review' ? 'bg-yellow-100 text-yellow-800' :
+                                                               'bg-red-100 text-red-800';
+                                            contentHtml += `<div class="mb-2"><span class="px-2 py-1 rounded text-xs font-medium ${statusBadge}">${task.outputs.status}</span></div>`;
+                                        }
+                                        
+                                        // Show execution time
+                                        if (task.outputs.execution_time_ms) {
+                                            contentHtml += `<div class="text-xs text-gray-500 mb-2">⏱️ ${task.outputs.execution_time_ms}ms</div>`;
+                                        }
+                                        
+                                        // Show primary output
+                                        if (task.outputs.primary_output) {
+                                            contentHtml += '<div class="content-text text-gray-800 bg-white p-3 rounded border-l-4 border-blue-400">';
+                                            
+                                            if (typeof task.outputs.primary_output === 'string') {
+                                                // Handle direct string content
+                                                const content = task.outputs.primary_output
+                                                    .replace(/^# (.*$)/gm, '<h1 class="text-xl font-bold mb-3">$1</h1>')
+                                                    .replace(/^## (.*$)/gm, '<h2 class="text-lg font-semibold mb-2">$1</h2>')
+                                                    .replace(/^### (.*$)/gm, '<h3 class="text-md font-medium mb-2">$1</h3>')
+                                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                                    .replace(/\n\n/g, '</p><p class="mb-2">')
+                                                    .replace(/\n/g, '<br>');
+                                                
+                                                contentHtml += `<p class="mb-2">${content}</p>`;
+                                            } else if (typeof task.outputs.primary_output === 'object') {
+                                                // Handle structured output objects
+                                                for (const [key, value] of Object.entries(task.outputs.primary_output)) {
+                                                    if (typeof value === 'object') {
+                                                        contentHtml += `<div class="mb-3"><strong>${key.replace(/_/g, ' ')}:</strong><pre class="mt-1 text-xs bg-gray-100 p-2 rounded">${JSON.stringify(value, null, 2)}</pre></div>`;
+                                                    } else {
+                                                        contentHtml += `<p class="mb-2"><strong>${key.replace(/_/g, ' ')}:</strong> ${value}</p>`;
+                                                    }
+                                                }
+                                            }
+                                            
+                                            contentHtml += '</div>';
+                                        }
+                                        
+                                        // Show quality gate failures if any
+                                        if (task.outputs.quality_gate_failures && task.outputs.quality_gate_failures.length > 0) {
+                                            contentHtml += '<div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">';
+                                            contentHtml += '<div class="text-xs font-medium text-yellow-800 mb-1">⚠️ Quality Issues:</div>';
+                                            task.outputs.quality_gate_failures.forEach(failure => {
+                                                contentHtml += `<div class="text-xs text-yellow-700">• ${failure}</div>`;
+                                            });
+                                            contentHtml += '</div>';
+                                        }
+                                        
+                                        // Show verification sources if any
+                                        if (task.outputs.verification_sources && task.outputs.verification_sources.length > 0) {
+                                            contentHtml += '<div class="mt-2 text-xs text-blue-600">';
+                                            contentHtml += `📚 ${task.outputs.verification_sources.length} sources`;
+                                            contentHtml += '</div>';
+                                        }
+                                    }
+                                    
+                                    contentHtml += '</div>';
+                                }
+                                
+                                contentHtml += '</div>';
+                            } else if (contentData.error) {
+                                contentHtml += `<p class="text-red-500 italic mt-2">API Error: ${contentData.error}</p>`;
+                            } else {
+                                contentHtml += '<p class="text-gray-500 italic mt-2">No content outputs available for this workflow.</p>';
+                            }
+                        } catch (contentError) {
+                            contentHtml += `<p class="text-red-500 italic mt-2">Error loading content: ${contentError.message}</p>`;
+                        }
+                        
+                        contentHtml += '</div>';
+                    }
+                    
+                    contentContainer.innerHTML = contentHtml;
+                    statusDiv.innerHTML = `✅ Loaded content from ${workflowsData.result.workflows.length} workflows`;
+                    
+                } else {
+                    statusDiv.innerHTML = '⚠️ No workflows found. Create some content using the buttons below!';
+                    contentContainer.innerHTML = `
+                        <div class="text-center py-8 text-gray-500">
+                            <div class="text-4xl mb-4">📭</div>
+                            <p>No generated content found.</p>
+                            <p class="mt-2">Create new content using the buttons below to see AI-generated campaign materials.</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                statusDiv.innerHTML = `❌ Error loading content: ${error.message}`;
+                console.error('Error:', error);
+            }
+        }
+        
+        async function createContent(type) {
+            const statusDiv = document.getElementById('status');
+            
+            const contentTypes = {
+                'educational': {
+                    intent: 'Create educational content about economic reform',
+                    payload: { topic: 'Understanding the Monetary Flow Tax', audience: 'general public', tone: 'educational' }
+                },
+                'social': {
+                    intent: 'Create social media content for economic awareness',
+                    payload: { topic: 'Tax the System, Not the People', platform: 'twitter', audience: 'working families' }
+                },
+                'policy': {
+                    intent: 'Create policy briefing document',
+                    payload: { topic: 'Monetary Flow Tax Implementation', audience: 'policymakers', tone: 'professional' }
+                },
+                'campaign': {
+                    intent: 'Create campaign material for movement growth',
+                    payload: { topic: 'Unburden America Campaign', audience: 'voters', tone: 'inspiring' }
+                }
+            };
+            
+            const config = contentTypes[type];
+            
+            try {
+                statusDiv.innerHTML = `🔄 Creating ${type} content...`;
+                
+                const response = await fetch(`${API_BASE_URL}/rpc`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'route_intent',
+                        params: config,
+                        id: Date.now().toString()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result && data.result.workflow_id) {
+                    statusDiv.innerHTML = `✅ ${type} content workflow created! ID: ${data.result.workflow_id}`;
+                    setTimeout(() => {
+                        statusDiv.innerHTML += ' 🔄 Refreshing content in 10 seconds...';
+                        setTimeout(loadLatestContent, 10000);
+                    }, 2000);
+                } else {
+                    statusDiv.innerHTML = `❌ Failed to create ${type} content`;
+                }
+                
+            } catch (error) {
+                statusDiv.innerHTML = `❌ Error creating ${type} content: ${error.message}`;
+            }
+        }
+        
+        // Load content when page loads
+        window.onload = function() {
+            loadLatestContent();
+        };
+    </script>
+</body>
+</html>
