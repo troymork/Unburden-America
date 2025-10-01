@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Refresh Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 5px 0; border-radius: 5px; }
+        .online { background: #e8f5e8; color: #2e7d32; }
+        .offline { background: #ffebee; color: #c62828; }
+        .loading { background: #fff3e0; color: #ef6c00; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .workflow { border: 1px solid #ddd; padding: 10px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Refresh Test</h1>
+    
+    <button onclick="testRefresh()">🔄 Test Refresh Functions</button>
+    
+    <div id="results">
+        <div class="status loading" id="mcpStatus">MCP Server: Loading...</div>
+        <div class="status loading" id="orchestratorStatus">Orchestrator: Loading...</div>
+        
+        <div style="margin-top: 20px;">
+            <h3>Workflows</h3>
+            <div id="workflowsList">Loading workflows...</div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <h3>Statistics</h3>
+            <div id="stats">Loading stats...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://7801-ipfd396blyulfd9cys1cy-6532622b.e2b.dev';
+        
+        async function apiCall(method, params = {}) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/rpc`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: method,
+                        params: params,
+                        id: Date.now().toString()
+                    })
+                });
+                
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error(`API call failed: ${method}`, error);
+                throw error;
+            }
+        }
+        
+        async function checkSystemHealth() {
+            try {
+                console.log('Testing checkSystemHealth...');
+                const healthResponse = await fetch(`${API_BASE_URL}/health`);
+                const health = await healthResponse.json();
+                console.log('Health response:', health);
+                
+                updateSystemHealth(health);
+                return true;
+            } catch (error) {
+                console.error('Health check failed:', error);
+                return false;
+            }
+        }
+        
+        function updateSystemHealth(health) {
+            console.log('Updating system health with:', health);
+            const mcpStatus = document.getElementById('mcpStatus');
+            const orchestratorStatus = document.getElementById('orchestratorStatus');
+            
+            if (mcpStatus) {
+                mcpStatus.textContent = `MCP Server: ${health.status === 'healthy' ? 'Online' : 'Offline'}`;
+                mcpStatus.className = health.status === 'healthy' ? 'status online' : 'status offline';
+            }
+            
+            if (orchestratorStatus) {
+                orchestratorStatus.textContent = `Orchestrator: ${health.orchestrator_available ? 'Online' : 'Offline'}`;
+                orchestratorStatus.className = health.orchestrator_available ? 'status online' : 'status offline';
+            }
+        }
+        
+        async function loadWorkflows() {
+            try {
+                console.log('Loading workflows...');
+                const workflowsResult = await apiCall('list_workflows');
+                console.log('Workflows result:', workflowsResult);
+                
+                if (workflowsResult.result && workflowsResult.result.workflows) {
+                    const workflows = workflowsResult.result.workflows;
+                    updateWorkflowsList(workflows);
+                    updateStats(workflows);
+                } else {
+                    document.getElementById('workflowsList').innerHTML = 'No workflows found';
+                }
+            } catch (error) {
+                console.error('Failed to load workflows:', error);
+                document.getElementById('workflowsList').innerHTML = `Error: ${error.message}`;
+            }
+        }
+        
+        function updateWorkflowsList(workflows) {
+            const container = document.getElementById('workflowsList');
+            if (workflows.length === 0) {
+                container.innerHTML = 'No active workflows';
+                return;
+            }
+            
+            let html = '';
+            workflows.forEach(workflow => {
+                html += `
+                    <div class="workflow">
+                        <strong>${workflow.name}</strong><br>
+                        Status: ${workflow.status}<br>
+                        Tasks: ${workflow.task_count}<br>
+                        Created: ${workflow.created_at}
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+        
+        function updateStats(workflows) {
+            const completed = workflows.filter(w => w.status === 'completed').length;
+            const inProgress = workflows.filter(w => w.status === 'in_progress').length;
+            const successRate = workflows.length > 0 ? Math.round((completed / workflows.length) * 100) : 0;
+            
+            document.getElementById('stats').innerHTML = `
+                <div>Total Workflows: ${workflows.length}</div>
+                <div>Completed: ${completed}</div>
+                <div>In Progress: ${inProgress}</div>
+                <div>Success Rate: ${successRate}%</div>
+            `;
+        }
+        
+        async function testRefresh() {
+            console.log('=== Testing Refresh Functions ===');
+            
+            try {
+                await checkSystemHealth();
+                await loadWorkflows();
+                console.log('✅ Refresh completed successfully');
+            } catch (error) {
+                console.error('❌ Refresh failed:', error);
+            }
+        }
+        
+        // Auto-run on load
+        window.onload = function() {
+            testRefresh();
+        };
+    </script>
+</body>
+</html>

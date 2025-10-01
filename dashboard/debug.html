@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard API Debug</title>
+</head>
+<body>
+    <h1>Dashboard API Debug</h1>
+    <div id="results"></div>
+    
+    <script>
+        const API_BASE_URL = 'https://7801-ipfd396blyulfd9cys1cy-6532622b.e2b.dev';
+        const resultsDiv = document.getElementById('results');
+        
+        async function testAPI() {
+            try {
+                // Test health endpoint
+                resultsDiv.innerHTML += '<h2>Testing Health Endpoint</h2>';
+                const healthResponse = await fetch(`${API_BASE_URL}/health`);
+                const healthData = await healthResponse.json();
+                resultsDiv.innerHTML += `<p>Health: ${JSON.stringify(healthData, null, 2)}</p>`;
+                
+                // Test list_workflows endpoint
+                resultsDiv.innerHTML += '<h2>Testing List Workflows Endpoint</h2>';
+                const workflowResponse = await fetch(`${API_BASE_URL}/rpc`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        method: 'list_workflows',
+                        params: {},
+                        id: Date.now().toString()
+                    })
+                });
+                const workflowData = await workflowResponse.json();
+                resultsDiv.innerHTML += `<p>Workflows: ${JSON.stringify(workflowData, null, 2)}</p>`;
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Run test when page loads
+        testAPI();
+    </script>
+</body>
+</html>

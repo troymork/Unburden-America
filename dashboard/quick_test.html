@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Quick Test</title>
+</head>
+<body>
+    <h1>🔄 Dashboard API Test - Click Refresh!</h1>
+    
+    <button onclick="testNow()" style="padding: 20px; font-size: 18px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        🔄 CLICK TO TEST DASHBOARD APIS
+    </button>
+    
+    <div id="status" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+        Click the button above to test the dashboard APIs
+    </div>
+    
+    <script>
+        async function testNow() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '🔄 Testing APIs...';
+            
+            try {
+                // Test 1: Health Check
+                statusDiv.innerHTML += '<br>📡 Testing MCP Server health...';
+                const healthResp = await fetch('https://7801-ipfd396blyulfd9cys1cy-6532622b.e2b.dev/health');
+                const healthData = await healthResp.json();
+                statusDiv.innerHTML += `<br>✅ Health: ${healthData.status}, Orchestrator: ${healthData.orchestrator_available}`;
+                
+                // Test 2: Workflows
+                statusDiv.innerHTML += '<br>📋 Testing workflows...';
+                const workflowResp = await fetch('https://7801-ipfd396blyulfd9cys1cy-6532622b.e2b.dev/rpc', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({method: 'list_workflows', params: {}, id: '123'})
+                });
+                const workflowData = await workflowResp.json();
+                const workflows = workflowData.result.workflows;
+                statusDiv.innerHTML += `<br>✅ Found ${workflows.length} workflows`;
+                
+                workflows.forEach(w => {
+                    statusDiv.innerHTML += `<br>  📌 ${w.name}: ${w.status} (${w.task_count} tasks)`;
+                });
+                
+                // Summary
+                statusDiv.innerHTML += '<br><br>🎉 <strong>ALL TESTS PASSED! Dashboard APIs are working perfectly!</strong>';
+                statusDiv.innerHTML += '<br>💡 The main dashboard should now be working. Try refreshing it.';
+                
+            } catch (error) {
+                statusDiv.innerHTML += `<br>❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

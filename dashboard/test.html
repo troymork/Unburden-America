@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Connection Test</h1>
+    <button onclick="testHealth()">Test Health</button>
+    <button onclick="testWorkflows()">Test Workflows</button>
+    <div id="results"></div>
+
+    <script>
+        const API_BASE_URL = 'https://7801-ipfd396blyulfd9cys1cy-6532622b.e2b.dev';
+        
+        async function testHealth() {
+            const results = document.getElementById('results');
+            results.innerHTML = 'Testing health endpoint...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                results.innerHTML = `<h3>Health Test Result:</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                results.innerHTML = `<h3>Health Test Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+        
+        async function testWorkflows() {
+            const results = document.getElementById('results');
+            results.innerHTML = 'Testing workflows endpoint...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/rpc`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        method: 'list_workflows',
+                        params: {},
+                        id: 'test'
+                    })
+                });
+                const data = await response.json();
+                results.innerHTML = `<h3>Workflows Test Result:</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                results.innerHTML = `<h3>Workflows Test Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+    </script>
+</body>
+</html>

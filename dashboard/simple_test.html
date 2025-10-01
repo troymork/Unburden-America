@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Dashboard Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .card { border: 1px solid #ccc; padding: 20px; margin: 10px 0; }
+        .error { color: red; }
+        .success { color: green; }
+        .loading { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>IsThereEnoughMoney Dashboard - Simple Test</h1>
+    
+    <div class="card">
+        <h2>System Status</h2>
+        <div id="status">Loading...</div>
+    </div>
+    
+    <div class="card">
+        <h2>Workflows</h2>
+        <div id="workflows">Loading...</div>
+        <button onclick="refreshWorkflows()">Refresh Workflows</button>
+    </div>
+    
+    <div class="card">
+        <h2>Statistics</h2>
+        <div id="stats">Loading...</div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://7801-ipfd396blyulfd9cys1cy-6532622b.e2b.dev';
+        
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                document.getElementById('status').innerHTML = `
+                    <div class="success">✅ System Healthy</div>
+                    <p>MCP Server: ${data.status}</p>
+                    <p>Orchestrator: ${data.orchestrator_available ? 'Available' : 'Unavailable'}</p>
+                    <p>Last Check: ${data.timestamp}</p>
+                `;
+                return true;
+            } catch (error) {
+                document.getElementById('status').innerHTML = `
+                    <div class="error">❌ System Error: ${error.message}</div>
+                `;
+                return false;
+            }
+        }
+        
+        async function loadWorkflows() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/rpc`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'list_workflows',
+                        params: {},
+                        id: Date.now().toString()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result && data.result.workflows) {
+                    const workflows = data.result.workflows;
+                    let html = `<div class="success">Found ${workflows.length} workflows:</div>`;
+                    
+                    workflows.forEach(workflow => {
+                        html += `
+                            <div style="border-left: 3px solid #4CAF50; padding: 10px; margin: 10px 0; background: #f9f9f9;">
+                                <strong>${workflow.name}</strong><br>
+                                Status: ${workflow.status}<br>
+                                Tasks: ${workflow.task_count}<br>
+                                ID: ${workflow.workflow_id}<br>
+                                Created: ${workflow.created_at}
+                            </div>
+                        `;
+                    });
+                    
+                    document.getElementById('workflows').innerHTML = html;
+                    
+                    // Update statistics
+                    const completed = workflows.filter(w => w.status === 'completed').length;
+                    const inProgress = workflows.filter(w => w.status === 'in_progress').length;
+                    const successRate = workflows.length > 0 ? Math.round((completed / workflows.length) * 100) : 0;
+                    
+                    document.getElementById('stats').innerHTML = `
+                        <div class="success">📊 Statistics</div>
+                        <p>Active Workflows: ${inProgress}</p>
+                        <p>Completed Today: ${completed}</p>
+                        <p>Success Rate: ${successRate}%</p>
+                        <p>Total Workflows: ${workflows.length}</p>
+                    `;
+                    
+                } else {
+                    document.getElementById('workflows').innerHTML = '<div class="error">No workflows found or invalid response</div>';
+                }
+                
+            } catch (error) {
+                document.getElementById('workflows').innerHTML = `
+                    <div class="error">❌ Failed to load workflows: ${error.message}</div>
+                `;
+            }
+        }
+        
+        async function refreshWorkflows() {
+            document.getElementById('workflows').innerHTML = '<div class="loading">🔄 Refreshing...</div>';
+            await loadWorkflows();
+        }
+        
+        // Initialize dashboard
+        async function init() {
+            await checkHealth();
+            await loadWorkflows();
+        }
+        
+        // Run initialization
+        init();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            checkHealth();
+            loadWorkflows();
+        }, 30000);
+    </script>
+</body>
+</html>
